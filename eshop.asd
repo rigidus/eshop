@@ -5,7 +5,6 @@
 ;;;;
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
-
 (asdf:defsystem #:eshop
   :version      "11.03.2011"
   :author       "rigidus <i.am.rigidus@gmail.com>"
@@ -24,8 +23,6 @@
                                        (:file "routes")))
                  (:module "storage"
                           :components ((:file "storage")))
-                 (:module "daemon"
-                          :components ((:static-file "daemon.conf")
-                                       (:static-file "daemon.lisp")
-                                       (:static-file "daemon.sh")))
-                 ))
+                 (:static-file "daemon.conf")
+                 (:static-file "daemon.lisp")
+                 (:static-file "daemon.sh")))
