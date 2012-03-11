@@ -24,8 +24,8 @@
                                        (:file "routes")))
                  (:module "storage"
                           :components ((:file "storage")))
-                 ;; (:module "daemon"
-                 ;;          :components ((:static-file "daemon.conf")
-                 ;;                       (:static-file "daemon.lisp")
-                 ;;                       (:static-file "daemon.sh")))
+                 (:module "daemon"
+                          :components ((:static-file "daemon.conf")
+                                       (:static-file "daemon.lisp")
+                                       (:static-file "daemon.sh")))
                  ))
