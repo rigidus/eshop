@@ -15,10 +15,10 @@
                  #:closure-template)
   :serial       t
   :components   ((:file "defmodule")
-                 (:module "tpl"
-                          :components ((:static-file "templates.htm")))
                  (:module "web"
-                          :components ((:file "web")
+                          :components ((:module "tpl"
+                                                :components ((:static-file "templates.htm")))
+                                       (:file "web")
                                        (:file "render")
                                        (:file "routes")))
                  (:module "storage"
