@@ -1,8 +1,8 @@
-(in-package #:eshop)
+;; (in-package #:eshop.web)
 
-(restas:define-route request-static-route-img ("/img/*")
-  (let ((full-uri (format nil "~a" (restas:request-full-uri))))
-    (pathname (concatenate 'string *basedir* "/img/" (subseq full-uri (search "/img/" full-uri))))))
+;; (restas:define-route request-static-route-img ("/img/*")
+;;   (let ((full-uri (format nil "~a" (restas:request-full-uri))))
+;;     (pathname (concatenate 'string *basedir* "/img/" (subseq full-uri (search "/img/" full-uri))))))
 
 ;; (restas:define-route request-static-route-pic ("/pic/*")
 ;;     (let* ((full-uri (format nil "~a" (restas:request-full-uri)))

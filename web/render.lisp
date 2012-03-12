@@ -5,12 +5,12 @@
 ;;;;
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
-(in-package #:eshop)
+(in-package #:eshop.web)
 
 
-(defclass eshop-render () ())
+(defclass eshop.web-render () ())
 
-(setf *default-render-method* (make-instance 'eshop-render))
+(setf *default-render-method* (make-instance 'eshop.web-render))
 
-(defmethod restas:render-object ((designer eshop-render) (obj t))
+(defmethod restas:render-object ((designer eshop.web-render) (obj t))
   "stub")
