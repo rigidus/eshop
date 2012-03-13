@@ -17,7 +17,6 @@
   :components   ((:file "defmodule")
                  (:module "tpl"
                           :components ((:static-file "templates.htm")))
-                 (:file "defmodule")
                  (:file "render")
                  (:file "routes")
                  (:file "init")))
