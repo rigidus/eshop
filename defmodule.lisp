@@ -5,21 +5,18 @@
 
 (in-package #:eshop)
 
-(let ((path          '(:RELATIVE "repo/eshop"))
-      (web-path      '(:RELATIVE "repo/eshop/web"))
-      (storage-path  '(:RELATIVE "repo/eshop/storage")))
-  (setf asdf:*central-registry*
-        (remove-duplicates (append asdf:*central-registry*
-                                   (list (merge-pathnames
-                                          (make-pathname :directory path)
-                                          (user-homedir-pathname))
-                                         (merge-pathnames
-                                          (make-pathname :directory web-path)
-                                          (user-homedir-pathname))
-                                         (merge-pathnames
-                                          (make-pathname :directory storage-path)
-                                          (user-homedir-pathname))))
-                           :test #'equal)))
+(setf asdf:*central-registry*
+      (remove-duplicates (append asdf:*central-registry*
+                                 (mapcar #'(lambda (path)
+                                             (merge-pathnames
+                                              (make-pathname :directory `(:relative ,path))
+                                              (user-homedir-pathname)))
+                                         '("repo/eshop"
+                                           "repo/eshop/perm"
+                                           "repo/eshop/gate"
+                                           "repo/eshop/web"
+                                           "repo/eshop/storage")))
+                         :test #'equal))
 
 (defparameter *basedir*
   (asdf:component-pathname (asdf:find-system '#:eshop)))
@@ -27,3 +24,7 @@
 (defun path (relative)
   (merge-pathnames relative *basedir*))
 
+(asdf:operate 'asdf:load-op '#:eshop.perm)
+(asdf:operate 'asdf:load-op '#:eshop.gate)
+(asdf:operate 'asdf:load-op '#:eshop.web)
+(asdf:operate 'asdf:load-op '#:eshop.storage)

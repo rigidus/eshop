@@ -5,13 +5,13 @@
 ;;;;
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
-(restas:define-module #:eshop.web
+(restas:define-module #:eshop.perm
     (:use #:cl #:iter #:alexandria))
 
-(in-package #:eshop.web)
+(in-package #:eshop.perm)
 
 (defparameter *basedir*
-  (asdf:component-pathname (asdf:find-system '#:eshop.web)))
+  (asdf:component-pathname (asdf:find-system '#:eshop.perm)))
 
 (defun path (relative)
   (merge-pathnames relative *basedir*))

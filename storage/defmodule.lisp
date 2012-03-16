@@ -5,9 +5,6 @@
 ;;;;
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
-
-(require 'restas)
-
 (restas:define-module #:eshop.storage
     (:use #:cl #:iter #:alexandria))
 
