@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.36 in css mode. -->
+<html>
+  <head>
+    <title>*slime-repl sbcl*</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #00ff00;
+        background-color: #1f1f1f;
+      }
+      .slime-repl-input {
+        /* slime-repl-input-face */
+        font-weight: bold;
+      }
+      .slime-repl-inputed-output {
+        /* slime-repl-inputed-output-face */
+        color: #ff0000;
+      }
+      .slime-repl-output {
+        /* slime-repl-output-face */
+        color: #ffa07a;
+      }
+      .slime-repl-prompt {
+        /* slime-repl-prompt-face */
+        color: #00ffff;
+      }
+      .slime-repl-result {
+      }
+
+      a {
+        color: inherit;
+        background-color: inherit;
+        font: inherit;
+        text-decoration: inherit;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+    <pre>
+; SLIME 2011-10-19
+<span class="slime-repl-prompt">CL-USER&gt; </span><span class="slime-repl-input">(defpackage #:test (:use #:cl))
+         (in-package #:test)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;PACKAGE "TEST"&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(ql:quickload 'sb-fastcgi)</span>
+<span class="slime-repl-output">To load "sb-fastcgi":
+  Load 1 ASDF system:
+    sb-fastcgi
+; Loading "sb-fastcgi"
+
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">(SB-FASTCGI)</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defun wsgi-app (env start-response)
+        (declare (ignore env))
+  (funcall start-response "200 OK" '(("X-author" . "Who?")
+                                     ("Content-Type" . "text/html")))
+  (list (multiple-value-bind (s m h) (decode-universal-time (get-universal-time))
+          (format nil "&lt;h1&gt;~2,'0D:~2,'0D:~2,'0D&lt;/h1&gt;" h m s))))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">WSGI-APP</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defun run-app-1 ()
+  (sb-fastcgi:socket-server-threaded
+   (sb-fastcgi:make-serve-function #'wsgi-app)
+   ;; :inet-addr "127.0.0.1")) ; &#1080;&#1083;&#1080; &#1089;&#1086;&#1082;&#1077;&#1090; &#1080;&#1083;&#1080; &#1080;&#1085;&#1077;&#1090;
+   :sock-path "/tmp/sb-fastcgi.sock"))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">RUN-APP-1</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">sb-fastcgi::(defun server-on-fd-threaded (func fd &amp;key (flags 0) (threads 4))
+  (fcgx-init)
+  (do ((count 0 (1+ count)))
+      ((&gt;= count threads) 'THREADS-START-DONE)
+    (sb-thread:make-thread (lambda ()
+                             (server-on-fd func fd :flags flags))
+                           :name (format nil "&#1090;&#1088;&#1077;&#1076;-~A" count))))</span>
+<span class="slime-repl-output">STYLE-WARNING: redefining SB-FASTCGI::SERVER-ON-FD-THREADED in DEFUN
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">SB-FASTCGI::SERVER-ON-FD-THREADED</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defun chmod-socket (sock-path &amp;optional (permission "777"))
+  (unless (sb-impl::process-exit-code
+           (sb-ext:run-program "chmod" (list permission sock-path)
+                               :search t))
+    (format t "&#1054;&#1064;&#1048;&#1041;&#1050;&#1040; &#1057;&#1052;&#1045;&#1053;&#1067; &#1055;&#1056;&#1040;&#1042; &#1057;&#1054;&#1050;&#1045;&#1058;&#1040;")))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">CHMOD-SOCKET</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(sb-fastcgi:load-libfcgi )</span>
+; Evaluation aborted on #&lt;SIMPLE-ERROR "Error opening ~:[runtime~;shared object ~:*~S~]:~%  ~A." {1004881223}&gt;.
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(sb-fastcgi:load-libfcgi )</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">T</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(run-app-1)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">SB-FASTCGI::THREADS-START-DONE</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(chmod-socket "/tmp/sb-fastcgi.sock")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span></pre>
+  </body>
+</html>
