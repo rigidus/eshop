@@ -1,0 +1,2 @@
+http://habrahabr.ru/post/139272/
+Через COM-запросы

@@ -1,0 +1,48 @@
+http://habrahabr.ru/company/bitrix/blog/139721/
+Там же гистограммы, которые строятся из логов
+
+Фиксируем в логах время выполнения запроса:
+
+Для nginx это "$request_time". При двухуровневой конфигурации
+nginx+apache или nginx+php-fpm полезно зафиксировать в логе nginx
+также "$upstream_response_time".
+
+Для apache это "%D".
+
+Для php-fpm это "%{mili}d".
+
+Пиковое использование памяти при обработке запроса
+
+Если Вы используете php-fpm, полезно сохранить в логе "%{bytes}M".
+
+Код HTTP ответа
+
+Обычно код HTTP ответа сохраняется в логах по умолчанию. Важно
+сохранять эту информацию, т.к. ошибки в обслуживании клиентов как
+правило имеют код ответа 40х или 50х (мы разберем коды ответов
+подробнее далее).
+
+Отдельные логи производительности и настройки логов
+
+Иногда удобно создавать отдельные логи «производительности»,
+сохраняющие информацию о времени отработки скрипта и пиковом
+использовании памяти, живущие рядом со «стандартными» логами. Мы часто
+используем такие опции:
+
+nginx:
+
+log_format main '$remote_addr - $remote_user [$time_local] "$host"
+"$request" '
+'$status $body_bytes_sent "$http_referer" '
+'"$http_user_agent" "$http_x_forwarded_for" ->
+$upstream_response_time';
+
+apache:
+
+LogFormat "%t \"%r\" %>s %b child:%P time-> %D" timing
+
+php-fpm:
+
+access.format = "%R # %{HTTP_HOST}e # %{HTTP_USER_AGENT}e # %t # %m #
+%r # %Q%q # %s # %f # %{mili}d # %{kilo}M # %{user}C+%{system}C"
+

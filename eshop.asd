@@ -10,9 +10,11 @@
   :author       "rigidus <i.am.rigidus@gmail.com>"
   :licence      "GPLv3"
   :description  "eshop"
-  :depends-on   (#:cl-ppcre
+  :depends-on   (#:closer-mop
+                 #:cl-ppcre
                  #:restas-directory-publisher
-                 #:closure-template)
+                 #:closure-template
+                 #:cl-json)
   :serial       t
   :components   ((:file "defmodule")
                  (:static-file "daemon.conf")

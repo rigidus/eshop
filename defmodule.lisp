@@ -1,7 +1,20 @@
+(require 'closer-mop)
 (require 'restas)
 
 (restas:define-module #:eshop
-    (:use #:cl #:iter #:alexandria))
+    (:use #:closer-mop
+          #:cl
+          #:iter
+          #:alexandria
+          #:json)
+  (:shadowing-import-from :closer-mop
+                          :defclass
+                          :defmethod
+                          :standard-class
+                          :ensure-generic-function
+                          :defgeneric
+                          :standard-generic-function
+                          :class-name))
 
 (in-package #:eshop)
 
