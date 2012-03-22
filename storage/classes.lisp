@@ -10,7 +10,7 @@
 
 ;; redefining JSON::WRITE-JSON-CHARS in DEFUN
 ;; reason: cyrillic symbols modifying
-(defun json::write-json-chars (s stream)
+json::(defun write-json-chars (s stream)
   "Write JSON representations (chars or escape sequences) of
 characters in string S to STREAM."
   (loop for ch across s
@@ -27,6 +27,24 @@ characters in string S to STREAM."
             (write-char ch stream)
             ))))
 
+
+;; object phone is part of object restaurant and other objects
+(defclass phone ()
+  ((main
+    :initarg :main
+    :initform ""
+    :accessor main
+    :documentation "(:type 'string)")
+   (delivery
+    :initarg :delivery
+    :initform ""
+    :accessor delivery
+    :documentation "(:type 'string)")
+   (banquet
+    :initarg :banquet
+    :initform ""
+    :accessor banquet
+    :documentation "(:type 'string)")))
 
 
 ;; object address is part of object restaurant
@@ -73,14 +91,28 @@ characters in string S to STREAM."
     :documentation "(:type 'string)")))
 
 
-;; test constructor address
-(defparameter *tmp*
-  (make-instance
-   'address
-   :latitude 59.856727
-   :longitude 23423.234
-   ))
+(defclass estimate ()
+  ((rating
+    :initarg :rating
+    :initform ""
+    :accessor rating
+    :documentation "(:type '(float 1 5))")
+   (rating_count
+    :initarg :rating_count
+    :initform ""
+    :accessor rating_count
+    :documentation "(:type 'integer)")
+   (comment_count
+    :initarg :comment_count
+    :initform ""
+    :accessor comment_count
+    :documentation "(:type 'integer)")))
 
+
+
+;; optional
+(defclass optional ()
+  ((
 
 
 ;; restaurant
@@ -122,32 +154,33 @@ characters in string S to STREAM."
     :documentation "(:type 'uri)")
    (phone
     :initarg :phone
-    :initform ""
+    :initform (make-instance 'phone)
     :accessor phone
-    :documentation "(:type '(plist (:main 'string
-                                    :delivery 'string
-                                    :bankuet 'string)))")
+    :documentation "(:type 'phone)")
    (address
     :initarg :address
     :initform (make-instance 'address)
     :accessor address
     :documentation "(:type 'address")
-   ;; (estimate
-   ;;  :initarg :estimate
-   ;;  :accessor estimate
-   ;;  :documentation "(:type '(plist rating 'float
-   ;;                                 rating_count 'CALC
-   ;;                                 comment_count 'CALC))")
-   ;; (worktime
-   ;;  :initarg :worktime
-   ;;  :accessor worktime
-   ;;  :documentation "(:type '(list
-   ;;                            (list \"07:00\" \"12:00\")
-   ;;                            (list \"07:00\" \"12:00\")))")
-   ;; (optional
-   ;;  :initarg :optional
-   ;;  :accessor optional
-   ;;  :documentation "(:type 'alist)")
+   (estimate
+    :initarg :estimate
+    :initform (make-instance 'estimate)
+    :accessor estimate
+    :documentation "(:type 'estimate)")
+   (worktime
+    :initarg :worktime
+    :initform (list
+               (list "07:00" "12:00")
+               (list "12:00" "19:00"))
+    :accessor worktime
+    :documentation "(:type '(list
+                              (list \"07:00\" \"12:00\")
+                              (list \"12:00\" \"19:00\")))")
+   (optional
+    :initarg :optional
+    :initform (make-instance 'optional)
+    :accessor optional
+    :documentation "(:type 'optional)")
    ))
 
 
@@ -159,29 +192,43 @@ characters in string S to STREAM."
    ))
 
 
-(print (encode-json-to-string *tmp*))
+(format t "~A" (encode-json-to-string *tmp*))
+
+{"id":1136,
+"name":"",
+"description":"",
+"opening_date":"",
+"price":0,
+"photo":"",
+"site":"",
+"phone":
+ {
+  "main":"",
+  "delivery":"",
+  "banquet":""
+ },
+"address":
+ {
+  "latitude":0,
+  "longitude":0,
+  "postal_code":"",
+  "country":"",
+  "city":"",
+  "subway":"",
+  "street":"",
+  "building":""
+ },
+"estimate":
+ {
+  "rating":"",
+  "rating_count":"",
+  "comment_count":""
+ },
+"worktime":null
+}
 
 
 
-;; {
-;; "id":1135,
-;; "name":"",
-;; "description":"",
-;; "opening_date":"",
-;; "price":0,
-;; "photo":"",
-;; "site":"",
-;; "phone":"",
-;; "address":{
-;;  "latitude":0,
-;;  "longitude":0,
-;;  "postal_code":"",
-;;  "country":"",
-;;  "city":"",
-;;  "subway":"",
-;;  "street":"",
-;;  "building":""}
-;; }
 
 
 
