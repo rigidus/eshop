@@ -112,7 +112,37 @@ characters in string S to STREAM."
 
 ;; optional
 (defclass optional ()
-  ((
+  ((kitchen
+    :initarg :kitchen
+    :initform '("мексиканская""итальянская")
+    :accessor kitchen
+    :documentation "")
+   (service
+    :initarg :service
+    :initform '("завтрак" "ланч")
+    :accessor service
+    :documentation "")
+   (additionally
+    :initarg :additionally
+    :initform '("кальян")
+    :accessor additionally
+    :documentation "")
+   (children
+    :initarg :children
+    :initform '("меню" "няня" "детская комната")
+    :accessor children
+    :documentation "")
+   (music
+    :initarg :music
+    :initform '("живая")
+    :accessor music
+    :documentation "")
+   (view
+    :initarg :view
+    :initform '("панорамный")
+    :accessor view
+    :documentation "")))
+
 
 
 ;; restaurant
@@ -194,74 +224,53 @@ characters in string S to STREAM."
 
 (format t "~A" (encode-json-to-string *tmp*))
 
-{"id":1136,
-"name":"",
-"description":"",
-"opening_date":"",
-"price":0,
-"photo":"",
-"site":"",
-"phone":
- {
-  "main":"",
-  "delivery":"",
-  "banquet":""
- },
-"address":
- {
-  "latitude":0,
-  "longitude":0,
-  "postal_code":"",
-  "country":"",
-  "city":"",
-  "subway":"",
-  "street":"",
-  "building":""
- },
-"estimate":
- {
-  "rating":"",
-  "rating_count":"",
-  "comment_count":""
- },
-"worktime":null
-}
 
-
-
-
-
-
-
-(print
- (decode-json-from-string
-  (encode-json-to-string
-   `(( "kitchen"      . ,(encode-json-to-string '("мексиканская" "итальянская")))
-     ( "service"      . ("завтрак" "ланч"))
-     ( "additionally" . ("кальян"))
-     ( "children"     . ("меню" "няня" "детская комната"))
-     ( "music"        . ("живая"))
-     ( "view"         . ("панорамный"))))))
-
-
-
-
-;; (defparameter *tmp*
-;;   (make-instance 'restaurant
-;;                  :id 5
-;;                  :name "makarena"
-;;                  :description "Макарена"
-;;                  :opening_date 32452345
-;;                  :price 3
-;;                  :photo "/images/restaurant/macarena.jpg"
-;;                  :site "http://macarenabar.ru"
-;;                  :phone '(( "main"      . "+78129063900")
-;;                           ( "delivery"  . "+78129063900")
-;;                           ( "bankuet"   . "+78129063900"))
-;;                  ;; :address
-;;                  ))
-
-;; (print (decode-json-from-string (encode-json-to-string *tmp*)))
+;; {
+;;   "id":1130,
+;;   "name":"",
+;;   "description":"",
+;;   "opening_date":"",
+;;   "price":0,
+;;   "photo":"",
+;;   "site":"",
+;;   "phone":
+;;   {
+;;     "main":"",
+;;     "delivery":"",
+;;     "banquet":""
+;;   },
+;;   "address":
+;;   {
+;;     "latitude":0,
+;;     "longitude":0,
+;;     "postal_code":"",
+;;     "country":"",
+;;     "city":"",
+;;     "subway":"",
+;;     "street":"",
+;;     "building":""
+;;   },
+;;   "estimate":
+;;   {
+;;     "rating":"",
+;;     "rating_count":"",
+;;     "comment_count":""
+;;   },
+;;   "worktime":
+;;   [
+;;     ["07:00","12:00"],
+;;     ["12:00","19:00"]
+;;   ],
+;;   "optional":
+;;   {
+;;     "kitchen": [ "мексиканская", "итальянская" ],
+;;     "service": ["завтрак", "ланч"],
+;;     "additionally": ["кальян"],
+;;     "children": ["меню", "няня", "детская комната"],
+;;     "music": ["живая"],
+;;     "view": ["панорамный"]
+;;   }
+;; }
 
 
 ;; map on slots test

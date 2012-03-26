@@ -1,8 +1,14 @@
-(defpackage #:test (:use #:cl))
-         (in-package #:test)
-(ql:quickload '(#:postmodern #:cl-json #:sb-fastcgi))
-(use-package '#:postmodern)
-(sb-fastcgi:load-libfcgi )
+(ql:quickload '(#:postmodern #:cl-json #:sb-fastcgi ))
+
+(defpackage #:test
+  (:use #:cl
+        #:postmodern
+        #:json
+        #:sb-fastcgi))
+
+(in-package #:test)
+
+(sb-fastcgi:load-libfcgi)
 
 
 json::(defun write-json-chars (s stream)
@@ -11,12 +17,12 @@ characters in string S to STREAM."
   (loop for ch across s
      for code = (char-code ch)
      with special
-     if (setq special (car (rassoc ch +json-lisp-escaped-chars+)))
+     if (setq special (car (rassoc ch json::+json-lisp-escaped-chars+)))
      do (write-char #\\ stream) (write-char special stream)
      else if (< #x1f code #x7f)
      do (write-char ch stream)
      else
-     do (let ((special '#.(rassoc-if #'consp +json-lisp-escaped-chars+)))
+     do (let ((special '#.(rassoc-if #'consp json::+json-lisp-escaped-chars+)))
           (destructuring-bind (esc . (width . radix)) special
             ;; (format stream "\\~C~V,V,'0R" esc radix width code)
             (write-char ch stream)
@@ -68,7 +74,7 @@ sb-fastcgi::(defun server-on-fd-threaded (func fd &key (flags 0) (threads 4))
                (setf resp-r result-rows resp-n result-nums)))
             (t
              (setf resp-r nil resp-n 0)))
-          (list (format nil "{ \"response\": ~A }" 
+          (list (format nil "{ \"response\": ~A }"
                   (if (plusp resp-n)
                       (json:encode-json-to-string resp-r)
                       *empty-result*)))))
@@ -81,5 +87,7 @@ sb-fastcgi::(defun server-on-fd-threaded (func fd &key (flags 0) (threads 4))
    :sock-path "/tmp/sb-fastcgi.sock"
    :threads 1))
 
-(run-app-1) (chmod-socket "/tmp/sb-fastcgi.sock") ; после (run-app-1)
+(run-app-1)
+
+(chmod-socket "/tmp/sb-fastcgi.sock") ; после (run-app-1)
 

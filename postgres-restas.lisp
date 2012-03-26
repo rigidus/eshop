@@ -1,3 +1,5 @@
+
+
 ;;;; пример
 ;;server {
 ;;   listen   80;
@@ -13,7 +15,9 @@
   (:use #:cl #:postmodern)
 ;;;  (:export ..)
            )
+
 (in-package #:restas.testdb)
+
 (defvar *spec-db* '("ravtadb" "ravta" "ravta1111" "localhost"))
 (defvar *empty-result* "нихрена не нашлось :(")
 (defvar *price-max* 999999)
@@ -25,12 +29,12 @@ characters in string S to STREAM."
   (loop for ch across s
      for code = (char-code ch)
      with special
-     if (setq special (car (rassoc ch +json-lisp-escaped-chars+)))
+     if (setq special (car (rassoc ch json::+json-lisp-escaped-chars+)))
      do (write-char #\\ stream) (write-char special stream)
      else if (< #x1f code #x7f)
      do (write-char ch stream)
      else
-     do (let ((special '#.(rassoc-if #'consp +json-lisp-escaped-chars+)))
+     do (let ((special '#.(rassoc-if #'consp json::+json-lisp-escaped-chars+)))
           (destructuring-bind (esc . (width . radix)) special
             ;; (format stream "\\~C~V,V,'0R" esc radix width code)
             (write-char ch stream)
@@ -38,7 +42,7 @@ characters in string S to STREAM."
 
 
 (restas:define-route main ("")
-  (format nil "{ \"response\": ~A }" 
+  (format nil "{ \"response\": ~A }"
           *empty-result*))
 
 (restas:define-route product ("product")
@@ -53,9 +57,9 @@ characters in string S to STREAM."
                                       :where (:and (:>= 'price '$1)
                                                    (:<= 'price '$2)))
                              :alists
-                             (format nil "$~A" pr-min)
-                             (format nil "$~A" pr-max))))
-    (format nil "{ \"response\": ~A }" 
+                             (format nil "руб~A" pr-min)
+                             (format nil "руб~A" pr-max))))
+    (format nil "{ \"response\": ~A }"
             (if resp-list
                 (json:encode-json-to-string resp-list)
                 *empty-result*))))
@@ -66,11 +70,12 @@ characters in string S to STREAM."
                       (query (:select 'name
                                       :from 'p_groups)
                              :alists)))
-    (format nil "{ \"response\": ~A }" 
+    (format nil "{ \"response\": ~A }"
             (if resp-list
                 (json:encode-json-to-string resp-list)
                 *empty-result*))))
 
 
 (restas:start '#:restas.testdb :port 4242 :address "localhost")
+(restas:debug-mode-on)
 
