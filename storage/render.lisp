@@ -17,6 +17,6 @@
   "default render stub")
 
 (defmethod restas:render-object ((designer storage-render) (obj restaurant))
-  (format nil "{\"response\": {~A}}" (encode-json-to-string obj)))
+  (format nil "{\"response\": ~A}" (encode-json-to-string obj)))
 
 

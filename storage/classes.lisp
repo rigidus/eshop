@@ -28,6 +28,29 @@ characters in string S to STREAM."
             ))))
 
 
+;; (defclass template ()
+;;   ((title
+;;     :initarg :title
+;;     :initform "Информация"
+;;     :accessor title
+;;     :documentation "")
+;;    (folder
+;;     :initarg :folder
+;;     :initform "info"
+;;     :accessor folder
+;;     :documentation "")
+;;    (name
+;;     :initarg :name
+;;     :initform "info"
+;;     :accessor name
+;;     :documentation "")
+;;    (edit
+;;     :initarg :edit
+;;     :initform "info"
+;;     :accessor edit
+;;     :documentation "")))
+
+
 ;; object phone is part of object restaurant and other objects
 (defclass phone ()
   ((main
