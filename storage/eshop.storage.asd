@@ -19,5 +19,7 @@
   :components   ((:file "defmodule")
                  (:file "lib")
                  (:file "classes")
+                 (:file "render")
+                 (:file "routes")
+                 (:file "init")
                  ))
-

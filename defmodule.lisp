@@ -1,5 +1,11 @@
 (require 'closer-mop)
 (require 'restas)
+(require 'closure-template)
+(require 'restas-directory-publisher)
+(require 'cl-base64)
+(require 'cl-json)
+;; (require 'drakma)
+
 
 (restas:define-module #:eshop
     (:use #:closer-mop

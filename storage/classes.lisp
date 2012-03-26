@@ -215,14 +215,7 @@ characters in string S to STREAM."
 
 
 
-;; serialize address
-(defparameter *tmp*
-  (make-instance
-   'restaurant
-   ))
 
-
-(format t "~A" (encode-json-to-string *tmp*))
 
 
 ;; {
