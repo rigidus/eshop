@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.36 in css mode. -->
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+    <title>*slime-repl sbcl*</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #00ff00;
+        background-color: #1f1f1f;
+      }
+      .slime-repl-input {
+        /* slime-repl-input-face */
+        font-weight: bold;
+      }
+      .slime-repl-inputed-output {
+        /* slime-repl-inputed-output-face */
+        color: #ff0000;
+      }
+      .slime-repl-output {
+        /* slime-repl-output-face */
+        color: #ffa07a;
+      }
+      .slime-repl-prompt {
+        /* slime-repl-prompt-face */
+        color: #00ffff;
+      }
+      .slime-repl-result {
+      }
+
+      a {
+        color: inherit;
+        background-color: inherit;
+        font: inherit;
+        text-decoration: inherit;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+    <pre>; SLIME 2011-10-19
+<span class="slime-repl-prompt">CL-USER&gt; </span><span class="slime-repl-input">(ql:quickload '(#:postmodern #:cl-json #:restas))
+(defpackage #:test (:use #:cl #:postmodern))
+         (in-package #:test)</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defclass country ()
+  ((name :col-type string :initarg :name
+         :reader country-name)
+   (inhabitants :col-type integer :initarg :inhabitants
+                :accessor country-inhabitants)
+   (sovereign :col-type (or db-null string) :initarg :sovereign
+              :accessor country-sovereign))
+  (:metaclass dao-class)
+  (:keys name)
+  (:table-name "country_table"))</span>
+<span class="slime-repl-output">STYLE-WARNING: redefining DAO-EXISTS-P (#&lt;DAO-CLASS COUNTRY&gt;) in DEFMETHOD
+STYLE-WARNING: redefining UPDATE-DAO (#&lt;DAO-CLASS COUNTRY&gt;) in DEFMETHOD
+STYLE-WARNING: redefining DELETE-DAO (#&lt;DAO-CLASS COUNTRY&gt;) in DEFMETHOD
+STYLE-WARNING:
+   redefining GET-DAO (#&lt;SB-MOP:EQL-SPECIALIZER {10077A2BD3}&gt;) in DEFMETHOD
+STYLE-WARNING: redefining INSERT-DAO (#&lt;DAO-CLASS COUNTRY&gt;) in DEFMETHOD
+STYLE-WARNING:
+   redefining POSTMODERN::FETCH-DEFAULTS (#&lt;DAO-CLASS
+                                            COUNTRY&gt;) in DEFMETHOD
+STYLE-WARNING:
+   redefining SHARED-INITIALIZE :AFTER (#&lt;DAO-CLASS COUNTRY&gt;
+                                        #&lt;BUILT-IN-CLASS T&gt;) in DEFMETHOD
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;DAO-CLASS COUNTRY&gt;</span></span><span class="slime-repl-result">
+</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(dao-table-definition 'country)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">"CREATE TABLE country_table (name TEXT NOT NULL, inhabitants INTEGER NOT NULL, sovereign TEXT DEFAULT NULL, PRIMARY KEY (name))"</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")</span>
+<span class="slime-repl-result">; No value</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(execute (dao-table-definition 'country))</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: CREATE TABLE / PRIMARY KEY will create implicit index "country_table_pkey" for table "country_table"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">0</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(insert-dao (make-instance 'country :name "The Netherlands"
+                                    :inhabitants 16400000
+                                    :sovereign "Beatrix"))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;COUNTRY {10077732B3}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defvar *ttt* (make-instance 'country :name "Croatia"
+                                    :inhabitants 4400000))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">*TTT*</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">*ttt*</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;COUNTRY {1003022D53}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(insert-dao *ttt*)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;COUNTRY {1003022D53}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(country-name *ttt*)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">"Croatia"</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(country-inhabitants *ttt*)</span>
+<span class="slime-repl-result">4400000</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(setf (country-inhabitants *ttt*) 4500000)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">4500000</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(update-dao *ttt*)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;COUNTRY {1003022D53}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(country-inhabitants *ttt*)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">4500000</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(dao-keys 'country )</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">(NAME)</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(dao-keys *ttt*)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">("Croatia")</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(make-dao 'country :name "Германия" :inhabitants 80000000 :sovereign "Меркель")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;COUNTRY {1006109D03}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query "select * from country_table")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">(("The Netherlands" 16400000 "Beatrix") ("Croatia" 4500000 :NULL)
+ ("Германия" 80000000 "Меркель"))</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">3</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query (:select '* :from '#:country-table))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">(("The Netherlands" 16400000 "Beatrix") ("Croatia" 4500000 :NULL)
+ ("Германия" 80000000 "Меркель"))</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">3</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span>
+<span class="slime-repl-result">; No value</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query (:select '* :from '#:country-table) :alist)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">((:NAME . "The Netherlands") (:INHABITANTS . 16400000) (:SOVEREIGN . "Beatrix"))</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">3</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query (:select '* :from '#:country-table) :alists)</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">(((:NAME . "The Netherlands") (:INHABITANTS . 16400000)
+  (:SOVEREIGN . "Beatrix"))
+ ((:NAME . "Croatia") (:INHABITANTS . 4500000) (:SOVEREIGN . :NULL))
+ ((:NAME . "Германия") (:INHABITANTS . 80000000) (:SOVEREIGN . "Меркель")))</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">3</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span></pre>
+  
+
+</body></html>
