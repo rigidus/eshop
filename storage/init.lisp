@@ -8,38 +8,78 @@
 (in-package #:eshop.storage)
 
 
+(defparameter *h-country* (make-hash-table :test #'equal))
+
+(setf (gethash "ru" *h-country*)
+      (make-i18n-str :ru "Россия" :en "Russia"))
+
+
+
+(defparameter *h-city* (make-hash-table :test #'equal))
+
+(setf (gethash "mos" *h-city*)
+      (make-i18n-str :ru "Москва" :en "Moscow"))
+(setf (gethash "spb" *h-city*)
+      (make-i18n-str :ru "Санкт-Петербург" :en "St. Petersburg"))
+
+
+
 (defparameter *h-restaurant* (make-hash-table))
+
+
 
 
 (setf (gethash 1 *h-restaurant*)
       (make-instance
        'restaurant
        :id 1
-       :name "Macarena"
+       :name (make-i18n-str :ru "Макарена" :en "Macarena")
+       :descr (make-i18n-str
+               :ru "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб)."
+               :en "we ...")
        :price 3
        :photo "/images/restaurant/macarena.jpg"
+       :site "http://macarenabar.ru"
+       :phone (make-instance
+               'phone
+               :main "+78129063900"
+               :delivery "+78129063900"
+               :banquet "+78129063900")
        :address (make-instance
                  'address
                  :latitude 59.856727
                  :longitude 30.321833
                  :postal_code "196066"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Московская"
-                 :street "Московский проспект"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Московская" :en "Moscowskaya")
+                 :street (make-i18n-str :ru "Московский проспект" :en "Moscowsky prospect")
                  :building "206")
        :estimate (make-instance
                   'estimate
                   :rating 4.98
                   :rating_count 27
-                  :comment_count 7)))
+                  :comment_count 7)
+       :capacity (make-instance
+                  'capacity
+                  :indoor 50
+                  :outdoor 30)
+       :optional (make-instance
+                  'optional
+                  :kitchen '("мексиканская" "итальянская")
+                  :service '("завтрак" "ланч")
+                  :additionally '("кальян")
+                  :children '("меню" "няня" "детская комната")
+                  :music '("живая")
+                  :view '("панорамный"))
+       ))
 
 
 (setf (gethash 2 *h-restaurant*)
       (make-instance
        'restaurant
        :id 2
-       :name "Тепло"
+       :name (make-i18n-str :ru "Тепло" :en "Teplo")
        :price 4
        :photo "/images/restaurant/teplo.jpg"
        :address (make-instance
@@ -47,10 +87,10 @@
                  :latitude 59.931887
                  :longitude 30.305412
                  :postal_code "190000"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Невский проспект"
-                 :street "Большая Морская"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Невский проспект" :en "Nevsky prospect")
+                 :street (make-i18n-str :ru "Большая Морская" :en "Bolshaya Morskaya")
                  :building "45")
        :estimate (make-instance
                   'estimate
@@ -63,7 +103,7 @@
       (make-instance
        'restaurant
        :id 3
-       :name "Гости"
+       :name (make-i18n-str :ru "Гости" :en "Gosti")
        :price 3
        :photo "/images/restaurant/gosti.jpg"
        :address (make-instance
@@ -71,10 +111,10 @@
                  :latitude 59.935169
                  :longitude 30.316003
                  :postal_code "190000"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Невский проспект"
-                 :street "Большая Морская"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Невский проспект" :en "Nevsky prospect")
+                 :street (make-i18n-str :ru "Большая Морская" :en "Bolshaya Morskaya")
                  :building "13/8")
        :estimate (make-instance
                   'estimate
@@ -86,7 +126,7 @@
       (make-instance
        'restaurant
        :id 4
-       :name "Антрекот"
+       :name (make-i18n-str :ru "Антрекот" :en "Antrecot")
        :price 3
        :photo "/images/restaurant/antrekot.jpg"
        :address (make-instance
@@ -94,10 +134,10 @@
                  :latitude 59.934281
                  :longitude 30.312338
                  :postal_code "190000"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Невский проспект"
-                 :street "Большая Морская"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Невский проспект" :en "Nevsky prospect")
+                 :street (make-i18n-str :ru "Большая Морская" :en "Bolshaya Morskaya")
                  :building "25")
        :estimate (make-instance
                   'estimate
@@ -110,7 +150,7 @@
       (make-instance
        'restaurant
        :id 5
-       :name "Italia"
+       :name (make-i18n-str :ru "Италия" :en "Italia")
        :price 3
        :photo "/images/restaurant/default.jpg"
        :address (make-instance
@@ -118,10 +158,10 @@
                  :latitude 59.929605
                  :longitude 30.374600
                  :postal_code "190000"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Площадь Восстания"
-                 :street "проспект Бакунина"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Площадь Восстания" :en "Ploshad Vosstania")
+                 :street (make-i18n-str :ru "проспект Бакунина" :en "prospect Bakunina")
                  :building "5")
        :estimate (make-instance
                   'estimate
@@ -134,7 +174,7 @@
       (make-instance
        'restaurant
        :id 6
-       :name "Barbaresco"
+       :name (make-i18n-str :ru "Барбареско" :en "Barbaresco")
        :price 4
        :photo "/images/restaurant/default.jpg"
        :address (make-instance
@@ -142,10 +182,10 @@
                  :latitude 59.940262
                  :longitude 30.327807
                  :postal_code "190000"
-                 :country "Россия"
-                 :city "Санкт-Петербург"
-                 :subway "Невский проспект"
-                 :street "Конюшенная площадь"
+                 :country "ru"
+                 :city "spb"
+                 :subway (make-i18n-str :ru "Невский проспект" :en "Nevsky prospect")
+                 :street (make-i18n-str :ru "Конюшенная площадь" :en "Konushennaya ploshad")
                  :building "2")
        :estimate (make-instance
                   'estimate

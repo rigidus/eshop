@@ -8,11 +8,7 @@
 
 
 (restas:define-module #:eshop
-    (:use #:closer-mop
-          #:cl
-          #:iter
-          #:alexandria
-          #:json)
+    (:use #:closer-mop #:cl #:iter #:alexandria #:anaphora #:json)
   (:shadowing-import-from :closer-mop
                           :defclass
                           :defmethod
