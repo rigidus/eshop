@@ -80,6 +80,9 @@
        'restaurant
        :id 2
        :name (make-i18n-str :ru "Тепло" :en "Teplo")
+       :descr (make-i18n-str
+               :ru "ru-descr"
+               :en "en-descr")
        :price 4
        :photo "/images/restaurant/teplo.jpg"
        :address (make-instance
@@ -104,6 +107,9 @@
        'restaurant
        :id 3
        :name (make-i18n-str :ru "Гости" :en "Gosti")
+       :descr (make-i18n-str
+               :ru "ru-descr"
+               :en "en-descr")
        :price 3
        :photo "/images/restaurant/gosti.jpg"
        :address (make-instance
@@ -127,6 +133,9 @@
        'restaurant
        :id 4
        :name (make-i18n-str :ru "Антрекот" :en "Antrecot")
+       :descr (make-i18n-str
+               :ru "ru-descr"
+               :en "en-descr")
        :price 3
        :photo "/images/restaurant/antrekot.jpg"
        :address (make-instance
@@ -151,6 +160,9 @@
        'restaurant
        :id 5
        :name (make-i18n-str :ru "Италия" :en "Italia")
+       :descr (make-i18n-str
+               :ru "ru-descr"
+               :en "en-descr")
        :price 3
        :photo "/images/restaurant/default.jpg"
        :address (make-instance
@@ -175,6 +187,9 @@
        'restaurant
        :id 6
        :name (make-i18n-str :ru "Барбареско" :en "Barbaresco")
+       :descr (make-i18n-str
+               :ru "ru-descr"
+               :en "en-descr")
        :price 4
        :photo "/images/restaurant/default.jpg"
        :address (make-instance
