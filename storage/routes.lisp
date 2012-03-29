@@ -40,7 +40,7 @@
                         :estimate (estimate v))
                        rs))
              *h-restaurant*)
-    (format nil "<pre>{\"response\": ~A}</pre>" (json:encode-json-to-string (reverse rs)))))
+    (format nil "{\"response\": ~A}" (json:encode-json-to-string (reverse rs)))))
 
 
 (restas:define-route rest-id ("/restaurant/:id")
@@ -79,4 +79,4 @@
               :capacity (capacity v)
               :optional (optional v)
               ))
-    (format nil "<pre>{\"response\": ~A}</pre>" (json:encode-json-to-string rs))))
+    (format nil "{\"response\": ~A}" (json:encode-json-to-string rs))))
