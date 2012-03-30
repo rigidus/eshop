@@ -1,0 +1,46 @@
+[
+{
+ "attr":
+  {
+    "id":"tag_1",
+    "rel":"tag"
+  },
+  "data":"\u0421\u043f\u0435\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
+  "state":"closed"
+},
+{
+  "attr":
+  {
+    "id":"menu_category_1",
+    "rel":"menu"
+  },
+  "data":"\u041e\u0441\u043d\u043e\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e",
+  "state":"closed"
+},
+  "attr":
+  {
+    "id":"menu_category_2",
+    "rel":"bar"
+  },
+  "data":"\u0411\u0430\u0440",
+  "state":"closed"
+},
+{
+  "attr":
+  {
+    "id":"tag_2",
+    "rel":"tag"
+  },
+  "data":"\u0417\u0430\u0432\u0442\u0440\u0430\u043a",
+  "state":"closed"
+},
+{
+  "attr":
+  {
+  "id":"tag_3",
+  "rel":"tag"
+  },
+  "data":"\u041b\u0430\u043d\u0447","state":"closed"
+},
+{
+  "attr":{"id":"tag_4","rel":"tag"},"data":"\u0414\u0435\u0442\u0441\u043a\u043e\u0435 \u043c\u0435\u043d\u044e","state":"closed"},{"attr":{"id":"tag_5","rel":"tag"},"data":"\u0411\u0430\u043d\u043a\u0435\u0442\u043d\u043e\u0435 \u043c\u0435\u043d\u044e","state":"closed"}]
