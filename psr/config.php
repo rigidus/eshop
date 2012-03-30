@@ -4,9 +4,9 @@
 // Коннект к Базе данных
 
 $host = "localhost";          // хост
-$database = "rus_parser";  // имя базы
+$database = "psr"          ;  // имя базы
 $login = "root";              // логин
-$password = "";               // пароль
+$password = "root";           // пароль
 
 
 #########sys.fun.#############
@@ -16,4 +16,4 @@ mysql_query("set names cp1251");
 $massparam='';$sql = mysql_query("SELECT * FROM `pref`"); while ($rowclubs = @mysql_fetch_array($sql)){$Config[$rowclubs['par']]=$rowclubs['val'];}if (!$Config['lang']) {$Config['lang']='russian';}$_=parse_ini_file('lang/'.$Config['lang'].'.ini');
 
 ?>
-<link rel="stylesheet" type="text/css" href="styles.css" /> 
+<link rel="stylesheet" type="text/css" href="styles.css" />
