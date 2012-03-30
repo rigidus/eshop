@@ -1,0 +1,3 @@
+php_value display_errors off
+DirectoryIndex parse.php
+Options -Indexes

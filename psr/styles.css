@@ -1,0 +1,52 @@
+body {
+    font-family: Verdana;
+    font-size: 12px;
+}
+
+a {
+    color : #005599;
+    text-decoration : none;
+}
+
+a:hover {
+    color : #005599;
+    text-decoration : underline;
+}
+
+hr {
+    border: 0px;
+    border-bottom: 1px solid #A3BAE2;
+}
+
+table {
+    font-family: Verdana;
+    font-size: 12px;    
+}
+
+td
+{
+padding-bottom:3px;
+}
+
+.nopad{padding-bottom:0;}
+
+.textbox{
+    border: 1px solid #A3BAE2; 
+    font-size: 11px; 
+}
+.dashed {
+    border: 1px dashed #ccc;    
+}
+.right-dashed {
+    border-right: 1px dashed #ccc;    
+}
+.button{
+    border: 1px solid #A3BAE2; 
+    background: #C1D2F0;
+    font-size: 11px;
+}
+.frame{
+    border: 1px solid #990000; 
+    background: #FFF;
+    font-size: 12px;
+}
