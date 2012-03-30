@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.36 in css mode. -->
+<html>
+  <head>
+    <title>*slime-repl sbcl*</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #00ff00;
+        background-color: #1f1f1f;
+      }
+      .slime-repl-input {
+        /* slime-repl-input-face */
+        font-weight: bold;
+      }
+      .slime-repl-inputed-output {
+        /* slime-repl-inputed-output-face */
+        color: #ff0000;
+      }
+      .slime-repl-output {
+        /* slime-repl-output-face */
+        color: #ffa07a;
+      }
+      .slime-repl-prompt {
+        /* slime-repl-prompt-face */
+        color: #00ffff;
+      }
+      .slime-repl-result {
+      }
+
+      a {
+        color: inherit;
+        background-color: inherit;
+        font: inherit;
+        text-decoration: inherit;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+    <pre>
+; SLIME 2011-10-19
+<span class="slime-repl-prompt">CL-USER&gt; </span><span class="slime-repl-input">(ql:quickload '(#:postmodern #:cl-json #:restas))
+(defpackage #:test (:use #:cl #:postmodern))
+         (in-package #:test)</span>
+<span class="slime-repl-output">To load "postmodern":
+  Load 1 ASDF system:
+    postmodern
+; Loading "postmodern"
+.
+To load "cl-json":
+  Load 1 ASDF system:
+    cl-json
+; Loading "cl-json"
+
+To load "restas":
+  Load 1 ASDF system:
+    restas
+; Loading "restas"
+.......
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;PACKAGE "TEST"&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(defvar *prod-id* 0
+  "&#1055;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1072;&#1103; &#1072;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090;&#1072; &#1076;&#1083;&#1103; product")
+(defun *prod-id* ()
+  "&#1040;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090; &#1076;&#1083;&#1103; product"
+  (incf *prod-id*))
+(defclass product ()
+  ((id :col-type integer :initarg :id :accessor product-id)
+   (name :col-type string :initarg :name :accessor product-name))
+  (:metaclass dao-class)
+  (:keys id))
+(defun add-product (name)
+  "&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072; &#1085;&#1072; &#1076;&#1091;&#1073;&#1083;&#1080;&#1082;&#1072;&#1090; &#1074; &#1041;&#1044;"
+  (make-dao 'product 
+            :id (*prod-id*)
+            :name name))
+(defvar *opname-id* 0
+  "&#1055;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1072;&#1103; &#1072;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090;&#1072; &#1076;&#1083;&#1103; opname")
+(defun *opname-id* ()
+  "&#1040;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090; &#1076;&#1083;&#1103; opname"
+  (incf *opname-id*))
+(defclass opname ()
+  ((id :col-type integer :initarg :id :accessor opnamet-id)
+   (name :col-type string :initarg :name :accessor opname-name))
+  (:metaclass dao-class)
+  (:keys id))
+(defun add-opname (name)
+  "&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072; &#1085;&#1072; &#1076;&#1091;&#1073;&#1083;&#1080;&#1082;&#1072;&#1090; &#1074; &#1041;&#1044;"
+  (make-dao 'opname 
+            :id (*opname-id*)
+            :name name))
+(defvar *option-id* 0
+  "&#1055;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1072;&#1103; &#1072;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090;&#1072; &#1076;&#1083;&#1103; option")
+(defun *option-id* ()
+  "&#1040;&#1074;&#1090;&#1086;&#1080;&#1085;&#1082;&#1088;&#1077;&#1084;&#1077;&#1085;&#1090; &#1076;&#1083;&#1103; option"
+  (incf *option-id*))
+(defclass option ()
+  ((pr-id :col-type integer :initarg :pr-id :accessor option-pr-id)
+   (op-id :col-type integer :initarg :op-id :accessor option-op-id)
+   (value :col-type string :initarg :value :accessor option-value))
+  (:metaclass dao-class)
+  (:keys pr-id op-id value))
+(defun add-option (pr-name &amp;rest opt-list)
+  "opt-list &#1076;&#1086;&#1083;&#1078;&#1077;&#1085; &#1073;&#1099;&#1090;&#1100; plist-&#1086;&#1084;"
+  (unless (and opt-list
+               (evenp (length opt-list)))
+    (format t "&#1085;&#1077;&#1087;&#1088;&#1072;&#1074;&#1080;&#1083;&#1100;&#1085;&#1099;&#1081; opt-list")
+    (return-from add-option))
+  (let ((prod-list (car (select-dao 'product (:ilike 'name pr-name)))))
+    (when (null prod-list)
+      (setf prod-list (add-product pr-name)))
+    (loop :for i :from 0 :upto (1- (length opt-list)) :by 2
+       :do (let* ((op-key (nth i opt-list))
+                  (op-val (nth (1+ i) opt-list))
+                  (key-list (car (select-dao 'opname (:ilike 'name op-key)))))
+             (when (null key-list)
+               (setf key-list (add-opname op-key)))
+             (make-dao 'option
+                       :pr-id (product-id prod-list)
+                       :op-id (opnamet-id key-list)
+                       :value op-val)))))</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">ADD-OPTION</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")</span>
+<span class="slime-repl-result">; No value</span>
+<span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(execute (dao-table-definition 'product))</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: CREATE TABLE / PRIMARY KEY will create implicit index "product_pkey" for table "product"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">0</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(execute (dao-table-definition 'opname))</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: CREATE TABLE / PRIMARY KEY will create implicit index "opname_pkey" for table "opname"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">0</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(execute (dao-table-definition 'option))</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: CREATE TABLE / PRIMARY KEY will create implicit index "option_pkey" for table "option"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">0</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query "ALTER TABLE product ADD CONSTRAINT uq_p_name UNIQUE (name)")</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: ALTER TABLE / ADD UNIQUE will create implicit index "uq_p_name" for table "product"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query "ALTER TABLE product ADD CHECK (name &lt;&gt; '')")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query "ALTER TABLE opname ADD CONSTRAINT uq_o_name UNIQUE (name)")
+(query "ALTER TABLE opname ADD CHECK (name &lt;&gt; '')")
+(query "ALTER TABLE option ADD FOREIGN KEY (pr_id) REFERENCES product(id)")</span>
+<span class="slime-repl-output">WARNING:
+   Postgres warning: ALTER TABLE / ADD UNIQUE will create implicit index "uq_o_name" for table "opname"
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(query "ALTER TABLE option ADD FOREIGN KEY (op_id) REFERENCES opname(id)")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-product "oil")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;PRODUCT {10041B0083}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-product "&#1084;&#1072;&#1089;&#1083;&#1086; A")
+(add-product "&#1084;&#1072;&#1089;&#1083;&#1086; B")
+(add-opname "&#1086;&#1073;&#1098;&#1105;&#1084;")
+(add-opname "&#1074;&#1103;&#1079;&#1082;&#1086;&#1089;&#1090;&#1100;")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">#&lt;OPNAME {10041F5C53}&gt;</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-option "oil" "&#1086;&#1073;&#1098;&#1105;&#1084;" "3&#1083;." "&#1086;&#1073;&#1098;&#1105;&#1084;" "4&#1083;.")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-option "oil" "&#1086;&#1073;&#1098;&#1105;&#1084;" "3,5&#1083;." "&#1086;&#1073;&#1098;&#1105;&#1084;" "4,5&#1083;.")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-option "&#1084;&#1072;&#1089;&#1083;&#1086; U" "&#1074;&#1077;&#1089;" "7,5&#1075;")</span>
+<span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-option "&#1084;&#1072;&#1089;&#1083;&#1086; U" "&#1074;&#1077;&#1089;" "7,5&#1075;" "gjh")</span>
+<span class="slime-repl-output">&#1085;&#1077;&#1087;&#1088;&#1072;&#1074;&#1080;&#1083;&#1100;&#1085;&#1099;&#1081; opt-list
+</span><span class="slime-repl-result"><span class="slime-repl-inputed-output">NIL</span></span><span class="slime-repl-result">
+</span><span class="slime-repl-prompt">TEST&gt; </span><span class="slime-repl-input">(add-option "oil" "&#1086;&#1073;&#1098;&#1105;&#1084;" "3,5&#1083;." "&#1086;&#1073;&#1098;&#1105;&#1084;" "4,5&#1083;.")</span>
+; Evaluation aborted on #&lt;CL-POSTGRES-ERROR:UNIQUE-VIOLATION {100459A933}&gt;.
+<span class="slime-repl-prompt">TEST&gt; </span></pre>
+  </body>
+</html>
