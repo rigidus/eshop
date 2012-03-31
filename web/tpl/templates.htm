@@ -1,0 +1,42 @@
+// -*- mode: closure-template-html; fill-column: 130 -*-
+
+{namespace eshop.web.view}
+
+{template meta}
+<head><meta charset="utf-8"/><title>{$meta.title}</title></head>
+{/template}
+
+{template class}
+{sp}class="{foreach $c in $class}{if not isFirst($c)}{sp}{/if}{$c |id}{/foreach}"
+{/template}
+
+{template box}
+<div{if $id} id="{$id |id}"{/if}{if $class} {call class data="all"/}{/if}>{$text}</div>
+{/template}
+
+{template src}
+<script src="{$script}" type="text/javascript"></script>
+{/template}
+
+{template top}
+{if $meta.doctype}{$meta.doctype|noAutoescape}{else}<!DOCTYPE html>{/if}
+{\n}<html>{call meta data="all" /}{\n}<body{if $meta.id} id="{$meta.id |id}"{/if}{if $meta.class}{call class data="$meta"/}{/if}>
+{/template}
+
+{template bottom}
+</body>
+{if $script}{call src data="all" /}{/if}
+</html>
+{/template}
+
+{template content}
+
+
+{call box data="$data"/}
+
+
+{/template}
+
+{template index}
+{call top data="all"/}{call content data="all"/}{call bottom data="all"/}
+{/template}

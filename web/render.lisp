@@ -7,10 +7,19 @@
 
 (in-package #:eshop.web)
 
+(defclass eshop.web.render () ())
 
-(defclass eshop.web-render () ())
+(setf *default-render-method* (make-instance 'eshop.web.render))
 
-(setf *default-render-method* (make-instance 'eshop.web-render))
+(defmethod render-route-data
+    ((designer eshop.web.render) (data list) route)
+  (funcall
+   (find-symbol (symbol-name route) '#:eshop.web.view)
+   data))
 
-(defmethod restas:render-object ((designer eshop.web-render) (obj t))
-  "stub")
+(defmethod restas:render-object
+    ((designer eshop.web.render) (data list))
+  (render-route-data designer data (restas:route-symbol restas:*route*)))
+
+(compile-cl-templates
+ (list (path "tpl/templates.htm")))

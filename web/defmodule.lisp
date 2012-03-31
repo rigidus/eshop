@@ -6,7 +6,8 @@
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
 (restas:define-module #:eshop.web
-    (:use #:cl #:iter #:alexandria))
+    (:use #:cl #:iter #:alexandria)
+  (:import-from #:closure-template #:compile-cl-templates))
 
 (in-package #:eshop.web)
 
@@ -15,4 +16,3 @@
 
 (defun path (relative)
   (merge-pathnames relative *basedir*))
-
