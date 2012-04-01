@@ -14,12 +14,14 @@
 (defmethod render-route-data
     ((designer eshop.web.render) (data list) route)
   (funcall
-   (find-symbol (symbol-name route) '#:eshop.web.view)
+   (find-symbol (symbol-name route) '#:eshop.web.design.default)
    data))
 
 (defmethod restas:render-object
     ((designer eshop.web.render) (data list))
   (render-route-data designer data (restas:route-symbol restas:*route*)))
 
-(compile-cl-templates
- (list (path "tpl/templates.htm")))
+(compile-cl-templates 
+ (mapcar 'asdf:component-pathname
+         (asdf:module-components
+          (asdf:find-component (asdf:find-system '#:eshop.web) 'tpl))))

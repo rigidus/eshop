@@ -1,0 +1,88 @@
+// -*- mode: closure-template-html; fill-column: 130 -*-
+
+{namespace eshop.web.design.default}
+/*
+ * DESIGN: Default
+ * ELEMENTS:
+ * page
+ * header
+ * navigation
+ * breadcrumb
+ * categories
+ * searchbar
+ * searchbox
+ * searchform
+ * viewcart
+ * myaccount
+ * support
+ * pagedlist
+ * itemview
+ * contactform
+ * registerform
+ * footer
+ */
+
+{template header}
+<header id="main-header"
+><h1 id="main-logo"></h1
+>{call navigation data="$nav"/}</header>
+{/template}
+
+{template footer}
+<footer id="main-footer"
+><div id="footer"
+><p id="copyright">{$copyright}</p></div></footer>
+{/template}
+
+{template class}
+{sp}class="{foreach $c in $class}{if not isFirst($c)}{sp}{/if}{$c |id}{/foreach}"
+{/template}
+
+{template menu}
+<ul{if $id} id="{$id |id}"{/if}{if $class}{call class data="all"/}{/if}
+>{if $items}{foreach $item in $items}<li{if $item.items} class="submenu"{/if}
+><a href="{$item.link}"><span
+>{$item.caption}</span></a>{if $helper}<{$helper}></{$helper}
+>{/if}{if $item.items}{call menu data="$item"/}{/if}</li>{/foreach}{/if}</ul>
+{/template}
+
+{template navigation}
+<nav id="{('nav-'+$id)}">{call menu data="all"/}</nav>
+{/template}
+
+{template jsrc}
+<script src="{$src}" type="text/javascript"></script>
+{/template}
+{template jstr}
+<script type="text/javascript">{$js |noAutoescape}</script>
+{/template}
+{template meta}
+<meta charset="utf-8"/><title>{$title}</title>
+{/template}
+
+{template page}
+<!DOCTYPE html>{\n}<html><head
+>{call meta data="$meta"/}</head
+>{\n}<body{if $meta.id} id="{$meta.id |id}"{/if}{if $meta.class}{call class data="$meta"/}{/if}
+>{if $data.html}{$data.html |noAutoescape}{/if}</body
+>{if $meta.mainsrc}{call jsrc data="$meta.mainsrc" /}
+{/if}{if $meta.mainscript}{call jstr data="$meta.mainscript" /}{/if}</html>
+{/template}
+
+{template box}
+<div{if $id} id="{$id |id}"{if $editable} contenteditable="true"{/if}{/if}
+{if $class}{call class data="all"/}{/if}
+>{if $html}{$html |noAutoescape}{/if}</div>
+{/template}
+
+{template blankLayout}
+{if $content}{call box data="$content"/}{/if}
+{/template}
+
+{template defaultLayout}
+{call header data="all"/}{if $content}{call box data="$content"/}{/if}{call footer data="all"/}
+{/template}
+
+{template index}
+{call defaultLayout data="all"/}
+{/template}

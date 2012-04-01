@@ -1,5 +1,6 @@
 (in-package #:eshop.web)
 
+(setf *templates-available* '("default.soy"))
 ;; start
 (restas:start '#:eshop.web :port 8888)
 (restas:debug-mode-on)

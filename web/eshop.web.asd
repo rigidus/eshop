@@ -16,7 +16,8 @@
   :serial       t
   :components   ((:file "defmodule")
                  (:module "tpl"
-                          :components ((:static-file "templates.htm")))
+                  :components ((:static-file "templates.htm")
+                               (:static-file "default.soy")))
                  (:file "render")
                  (:file "routes")
                  (:file "init")))
