@@ -1,4 +1,4 @@
-;;;; lib.lisp
+;;;; product.lisp
 ;;;;
 ;;;; This file is part of the cl-eshop project, released under GNU Affero General Public License, Version 3.0
 ;;;; See file COPYING for details.
@@ -26,6 +26,9 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 (connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
+
+(connect-toplevel "restodb" "resto" "resto1111" "localhost")
+
 
 (defclass country ()
   ((name              :col-type string          :initarg :name            :initform ""        :reader country-name)
@@ -117,10 +120,10 @@ alter user <dbuser> with password '<dbpassword>';
   (incf *prod-id*))
 
 (defclass product ()
-    ((id :col-type integer :initarg :id :accessor product-id)
-        (name :col-type string :initarg :name :accessor product-name))
-    (:metaclass dao-class)
-      (:keys id))
+  ((id :col-type integer :initarg :id :accessor product-id)
+   (name :col-type string :initarg :name :accessor product-name))
+  (:metaclass dao-class)
+  (:keys id))
 
 (defun add-product (name)
     "Проверка на дубликат в БД"

@@ -41,14 +41,14 @@ characters in string S to STREAM."
 
 
 
-;; object phone is part of object restaurant and other objects
+;; object phone is part of object resto and other objects
 (defclass phone ()
   ((main              :initarg :main            :initform ""        :accessor main)
    (delivery          :initarg :delivery        :initform ""        :accessor delivery)
    (banquet           :initarg :banquet         :initform ""        :accessor banquet)))
 
 
-;; object address is part of object restaurant
+;; object address is part of object resto
 (defclass address ()
   ((latitude          :initarg :latitude        :initform 0         :accessor latitude)
    (longitude         :initarg :longitude       :initform 0         :accessor longitude)
@@ -60,14 +60,14 @@ characters in string S to STREAM."
    (building          :initarg :building        :initform ""        :accessor building)))
 
 
-;; object estimate is part of object restaurant
+;; object estimate is part of object resto
 (defclass estimate ()
   ((rating            :initarg :rating          :initform ""        :accessor rating)
    (rating_count      :initarg :rating_count    :initform ""        :accessor rating_count)
    (comment_count     :initarg :comment_count   :initform ""        :accessor comment_count)))
 
 
-;; object capacity is part of object restaurant
+;; object capacity is part of object resto
 (defclass capacity ()
   ((indoor            :initarg :indoor          :initform ""        :accessor indoor)
    (outdoor           :initarg :outdoor         :initform ""        :accessor outdoor)))
@@ -83,8 +83,8 @@ characters in string S to STREAM."
    (view              :initarg :view            :initform nil       :accessor view)))
 
 
-;; restaurant
-(defclass restaurant ()
+;; resto
+(defclass resto ()
   ((id                :initarg :id              :initform 0         :accessor id)
    (name              :initarg :name            :initform ""        :accessor name)
    (descr             :initarg :descr           :initform ""        :accessor descr)
@@ -100,7 +100,7 @@ characters in string S to STREAM."
    (optional          :initarg :optional        :initform ""        :accessor optional)))
 
 
-(defclass restaurant~shortlist ()
+(defclass resto~shortlist ()
   ((id                :initarg :id              :initform 0         :accessor id)
    (name              :initarg :name            :initform ""        :accessor name)
    (price             :initarg :price           :initform ""        :accessor price)
@@ -110,7 +110,7 @@ characters in string S to STREAM."
    ))
 
 
-(defclass restaurant~longview ()
+(defclass resto~longview ()
   ((id                :initarg :id              :initform 0         :accessor id)
    (name              :initarg :name            :initform ""        :accessor name)
    (descr             :initarg :descr           :initform ""        :accessor descr)
@@ -124,6 +124,36 @@ characters in string S to STREAM."
    (capacity          :initarg :capacity        :initform ""        :accessor capacity)
    (worktime          :initarg :worktime        :initform ""        :accessor worktime)
    (optional          :initarg :optional        :initform ""        :accessor optional)))
+
+
+
+
+(defclass product ()
+  ((id                :col-type integer         :initarg :id              :initform 0         :accessor id)
+   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
+   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
+   (opts                                        :initarg :opts            :initform ""        :accessor opts))
+  (:metaclass dao-class)
+  (:keys id))
+
+
+(defclass optname ()
+  ((name              :initarg :name            :initform ""        :accessor name)
+   (value             :initarg :value           :initform ""        :accessor value)
+   (optype            :initarg :optype          :initform nil       :accessor optype)
+   (optgrp            :initarg :optgrp          :initform ""        :accessor optgrp))
+  (:metaclass dao-class)
+  (:keys name value optype optgrp))
+
+
+(defclass optval ()
+  ((product-id        :initarg :product-id      :initform ""        :accessor product-id)
+   (option-id         :initarg :option-id       :initform ""        :accessor option-id)
+   (value             :initarg :value           :initform ""        :accessor value))
+  (:metaclass dao-class)
+  (:keys product-id option-id value))
+
+
 
 
 
@@ -134,60 +164,3 @@ characters in string S to STREAM."
 ;;                                (slot-definition-name x))))
 ;;         (compute-slots (find-class 'address)))
 
-
-
-
-;; Рестораны объединены в сеть
-;; Рестораны <-> юрлица
-
-;; Рестораны
-;;   Меню - это поле объекта, хранящее корень иерархии категорий меню
-;;     Категории меню (Бар, Основное меню) есть системные и произвольные
-;;       Подкатегории меню (Холодные закуски, Пицца, Паста)
-;;         Блюда  - ссылка на этот объект из меню.
-;;           Группы характеристик - нет, теги - ссылки на объект "тег"
-;;             Характеристики (ключ => значение) - нет
-
-;; У тегов могут быть категории тегов - иерархия тегов
-;; Нет ссылкам, да характерикам
-
-;; Заказ:
-;;   Статусы: размещен, принят, в работе, в пути, выполнен, отменен
-;;   Время оформления
-;;   Время доставки
-
-;; Клиент (личный кабинет)
-;;   Статусы: зарегистрирован, не зарегистрирован, запомнен.
-
-;; Администратор (админка)
-;;   Мои рестораны
-;;   Мультиязычность
-;;   Редактирование блюд
-
-
-;; (deftype op-type ()
-;;   (cons 'member (list :bool :int :float :str)))
-
-
-;; (defclass option ()
-;;   ((name              :initarg :name            :initform ""        :accessor name)
-;;    (value             :initarg :value           :initform ""        :accessor value)
-;;    (optgrp            :initarg :optgrp          :initform ""        :accessor optgrp)
-;;    (optype            :initarg :optype          :initform nil       :accessor optype)))
-
-
-;; (defclass product ()
-;;   ((articul           :initarg :articul         :initform nil       :accessor articul)
-;;    (name              :initarg :name            :initform ""        :accessor name)
-;;    (order             :initarg :order           :initform nil       :accessor order)
-;;    (price             :initarg :price           :initform 0         :accessor price)
-;;    (descr             :initarg :descr           :initform ""        :accessor descr)
-;;    (opts              :initarg :opts            :initform nil       :accessor opts)))
-
-
-;; (defclass group ()
-;;   ((name              :initarg :name            :initform nil       :accessor name)
-;;    (order             :initarg :order           :initform nil       :accessor order)
-;;    (descr             :initarg :descr           :initform nil       :accessor descr)
-;;    (icon              :initarg :icon            :initform nil       :accessor icon)
-;;    (pic               :initarg :pic             :initform nil       :accessor pic)))

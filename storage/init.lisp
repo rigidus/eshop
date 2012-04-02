@@ -24,21 +24,21 @@
 
 
 
-(defparameter *h-restaurant* (make-hash-table))
+(defparameter *h-resto* (make-hash-table))
 
 
 
 
-(setf (gethash 1 *h-restaurant*)
+(setf (gethash 1 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 1
        :name (make-i18n-str :ru "Макарена" :en "Macarena")
        :descr (make-i18n-str
                :ru "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб)."
                :en "we ...")
        :price 3
-       :photo "/images/restaurant/macarena.jpg"
+       :photo "/images/rest/macarena.jpg"
        :site "http://macarenabar.ru"
        :phone (make-instance
                'phone
@@ -75,16 +75,16 @@
        ))
 
 
-(setf (gethash 2 *h-restaurant*)
+(setf (gethash 2 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 2
        :name (make-i18n-str :ru "Тепло" :en "Teplo")
        :descr (make-i18n-str
                :ru "ru-descr"
                :en "en-descr")
        :price 4
-       :photo "/images/restaurant/teplo.jpg"
+       :photo "/images/rest/teplo.jpg"
        :address (make-instance
                  'address
                  :latitude 59.931887
@@ -102,16 +102,16 @@
                   :comment_count 54)))
 
 
-(setf (gethash 3 *h-restaurant*)
+(setf (gethash 3 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 3
        :name (make-i18n-str :ru "Гости" :en "Gosti")
        :descr (make-i18n-str
                :ru "ru-descr"
                :en "en-descr")
        :price 3
-       :photo "/images/restaurant/gosti.jpg"
+       :photo "/images/rest/gosti.jpg"
        :address (make-instance
                  'address
                  :latitude 59.935169
@@ -128,16 +128,16 @@
                   :rating_count 22
                   :comment_count 77)))
 
-(setf (gethash 4 *h-restaurant*)
+(setf (gethash 4 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 4
        :name (make-i18n-str :ru "Антрекот" :en "Antrecot")
        :descr (make-i18n-str
                :ru "ru-descr"
                :en "en-descr")
        :price 3
-       :photo "/images/restaurant/antrekot.jpg"
+       :photo "/images/rest/antrekot.jpg"
        :address (make-instance
                  'address
                  :latitude 59.934281
@@ -155,16 +155,16 @@
                   :comment_count 23)))
 
 
-(setf (gethash 5 *h-restaurant*)
+(setf (gethash 5 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 5
        :name (make-i18n-str :ru "Италия" :en "Italia")
        :descr (make-i18n-str
                :ru "ru-descr"
                :en "en-descr")
        :price 3
-       :photo "/images/restaurant/default.jpg"
+       :photo "/images/rest/default.jpg"
        :address (make-instance
                  'address
                  :latitude 59.929605
@@ -182,16 +182,16 @@
                   :comment_count 1)))
 
 
-(setf (gethash 6 *h-restaurant*)
+(setf (gethash 6 *h-resto*)
       (make-instance
-       'restaurant
+       'resto
        :id 6
        :name (make-i18n-str :ru "Барбареско" :en "Barbaresco")
        :descr (make-i18n-str
                :ru "ru-descr"
                :en "en-descr")
        :price 4
-       :photo "/images/restaurant/default.jpg"
+       :photo "/images/rest/default.jpg"
        :address (make-instance
                  'address
                  :latitude 59.940262
