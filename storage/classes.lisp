@@ -41,14 +41,12 @@ characters in string S to STREAM."
 
 
 
-;; object phone is part of object restaurant and other objects
 (defclass phone ()
   ((main              :initarg :main            :initform ""        :accessor main)
    (delivery          :initarg :delivery        :initform ""        :accessor delivery)
    (banquet           :initarg :banquet         :initform ""        :accessor banquet)))
 
 
-;; object address is part of object restaurant
 (defclass address ()
   ((latitude          :initarg :latitude        :initform 0         :accessor latitude)
    (longitude         :initarg :longitude       :initform 0         :accessor longitude)
@@ -60,134 +58,11 @@ characters in string S to STREAM."
    (building          :initarg :building        :initform ""        :accessor building)))
 
 
-;; object estimate is part of object restaurant
 (defclass estimate ()
   ((rating            :initarg :rating          :initform ""        :accessor rating)
    (rating_count      :initarg :rating_count    :initform ""        :accessor rating_count)
    (comment_count     :initarg :comment_count   :initform ""        :accessor comment_count)))
 
 
-;; object capacity is part of object restaurant
-(defclass capacity ()
-  ((indoor            :initarg :indoor          :initform ""        :accessor indoor)
-   (outdoor           :initarg :outdoor         :initform ""        :accessor outdoor)))
 
 
-;; optional
-(defclass optional ()
-  ((kitchen           :initarg :kitchen         :initform nil       :accessor kitchen)
-   (service           :initarg :service         :initform nil       :accessor service)
-   (additionally      :initarg :additionally    :initform nil       :accessor additionally)
-   (children          :initarg :children        :initform nil       :accessor children)
-   (music             :initarg :music           :initform nil       :accessor music)
-   (view              :initarg :view            :initform nil       :accessor view)))
-
-
-;; restaurant
-(defclass restaurant ()
-  ((id                :initarg :id              :initform 0         :accessor id)
-   (name              :initarg :name            :initform ""        :accessor name)
-   (descr             :initarg :descr           :initform ""        :accessor descr)
-   (opening_date      :initarg :opening_date    :initform ""        :accessor opening_date)
-   (price             :initarg :price           :initform ""        :accessor price)
-   (photo             :initarg :photo           :initform ""        :accessor photo)
-   (site              :initarg :site            :initform ""        :accessor site)
-   (phone             :initarg :phone           :initform ""        :accessor phone)
-   (address           :initarg :address         :initform ""        :accessor address)
-   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
-   (capacity          :initarg :capacity        :initform ""        :accessor capacity)
-   (worktime          :initarg :worktime        :initform ""        :accessor worktime)
-   (optional          :initarg :optional        :initform ""        :accessor optional)))
-
-
-(defclass restaurant~shortlist ()
-  ((id                :initarg :id              :initform 0         :accessor id)
-   (name              :initarg :name            :initform ""        :accessor name)
-   (price             :initarg :price           :initform ""        :accessor price)
-   (photo             :initarg :photo           :initform ""        :accessor photo)
-   (address           :initarg :address         :initform ""        :accessor address)
-   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
-   ))
-
-
-(defclass restaurant~longview ()
-  ((id                :initarg :id              :initform 0         :accessor id)
-   (name              :initarg :name            :initform ""        :accessor name)
-   (descr             :initarg :descr           :initform ""        :accessor descr)
-   (opening_date      :initarg :opening_date    :initform ""        :accessor opening_date)
-   (price             :initarg :price           :initform ""        :accessor price)
-   (photo             :initarg :photo           :initform ""        :accessor photo)
-   (site              :initarg :site            :initform ""        :accessor site)
-   (phone             :initarg :phone           :initform ""        :accessor phone)
-   (address           :initarg :address         :initform ""        :accessor address)
-   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
-   (capacity          :initarg :capacity        :initform ""        :accessor capacity)
-   (worktime          :initarg :worktime        :initform ""        :accessor worktime)
-   (optional          :initarg :optional        :initform ""        :accessor optional)))
-
-
-
-;; map on slots test
-
-;; (mapcar #'(lambda (x)
-;;             (print (slot-value *tmp*
-;;                                (slot-definition-name x))))
-;;         (compute-slots (find-class 'address)))
-
-
-
-
-;; Рестораны объединены в сеть
-;; Рестораны <-> юрлица
-
-;; Рестораны
-;;   Меню - это поле объекта, хранящее корень иерархии категорий меню
-;;     Категории меню (Бар, Основное меню) есть системные и произвольные
-;;       Подкатегории меню (Холодные закуски, Пицца, Паста)
-;;         Блюда  - ссылка на этот объект из меню.
-;;           Группы характеристик - нет, теги - ссылки на объект "тег"
-;;             Характеристики (ключ => значение) - нет
-
-;; У тегов могут быть категории тегов - иерархия тегов
-;; Нет ссылкам, да характерикам
-
-;; Заказ:
-;;   Статусы: размещен, принят, в работе, в пути, выполнен, отменен
-;;   Время оформления
-;;   Время доставки
-
-;; Клиент (личный кабинет)
-;;   Статусы: зарегистрирован, не зарегистрирован, запомнен.
-
-;; Администратор (админка)
-;;   Мои рестораны
-;;   Мультиязычность
-;;   Редактирование блюд
-
-
-;; (deftype op-type ()
-;;   (cons 'member (list :bool :int :float :str)))
-
-
-;; (defclass option ()
-;;   ((name              :initarg :name            :initform ""        :accessor name)
-;;    (value             :initarg :value           :initform ""        :accessor value)
-;;    (optgrp            :initarg :optgrp          :initform ""        :accessor optgrp)
-;;    (optype            :initarg :optype          :initform nil       :accessor optype)))
-
-
-;; (defclass product ()
-;;   ((articul           :initarg :articul         :initform nil       :accessor articul)
-;;    (name              :initarg :name            :initform ""        :accessor name)
-;;    (order             :initarg :order           :initform nil       :accessor order)
-;;    (price             :initarg :price           :initform 0         :accessor price)
-;;    (descr             :initarg :descr           :initform ""        :accessor descr)
-;;    (opts              :initarg :opts            :initform nil       :accessor opts)))
-
-
-;; (defclass group ()
-;;   ((name              :initarg :name            :initform nil       :accessor name)
-;;    (order             :initarg :order           :initform nil       :accessor order)
-;;    (descr             :initarg :descr           :initform nil       :accessor descr)
-;;    (icon              :initarg :icon            :initform nil       :accessor icon)
-;;    (pic               :initarg :pic             :initform nil       :accessor pic)))
