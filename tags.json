@@ -1,0 +1,61 @@
+[
+    {
+      "attr": {
+        "id":"tag_1",
+        "rel":"tag"
+      },
+      "data":"Специальное предложение",
+      "state":"closed"
+    },
+    {
+      "attr": {
+        "id":"menu_category_1",
+        "rel":"menu"},
+      "data":"Основное меню",
+      "state":"closed"
+    },
+    {
+      "attr":
+      {
+        "id":"menu_category_2",
+        "rel":"bar"
+      },
+      "data":"Бар",
+      "state":"closed"
+    },
+    {
+      "attr":
+      {
+        "id":"tag_2",
+        "rel":"tag"
+      },
+      "data":"Завтрак",
+      "state":"closed"
+    },
+    {
+      "attr":{
+        "id":"tag_3",
+        "rel":"tag"
+      },
+      "data":"Ланч",
+      "state":"closed"
+    },
+    {
+      "attr":
+      {
+        "id":"tag_4",
+        "rel":"tag"
+      },
+      "data":"Детское меню",
+      "state":"closed"
+    },
+    {
+      "attr":
+      {
+        "id":"tag_5",
+        "rel":"tag"
+      },
+      "data":"Банкетное меню",
+      "state":"closed"
+    }
+]
