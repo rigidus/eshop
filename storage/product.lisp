@@ -27,8 +27,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 (connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
 
-(connect-toplevel "restodb" "resto" "resto1111" "localhost")
-
 
 (defclass country ()
   ((name              :col-type string          :initarg :name            :initform ""        :reader country-name)
