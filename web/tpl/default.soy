@@ -25,7 +25,7 @@
 {template header}
 <header id="main-header"
 ><h1 id="main-logo"></h1
->{call navigation data="$nav"/}</header>
+>{if $nav}{call navigation data="$nav"/}{/if}</header>
 {/template}
 
 {template footer}
@@ -47,7 +47,7 @@
 {/template}
 
 {template navigation}
-<nav id="{('nav-'+$id)}">{call menu data="all"/}</nav>
+<nav{if $id} id="{('nav-'+$id)|id}"{/if}>{call menu data="all"/}</nav>
 {/template}
 
 {template jsrc}
