@@ -1,0 +1,27 @@
+[
+    {
+        "categories" :
+        {
+            "id":"1",
+            "name" : "Акции",
+            "icon":"/img/icon_action.png"
+        },
+        {
+            "id":"2",
+            "name" : "Специальные предложения",
+            "icon":"/img/icon_spec.png"
+        },
+        ....
+    },
+    {
+        "products" :
+        {
+            "id":"1",
+            "name" : "Еда мужская, 1 кг.",
+            "pic":"/img/eda.png"
+        },
+        ...
+    }
+...
+]
+
