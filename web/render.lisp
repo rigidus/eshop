@@ -26,5 +26,5 @@
             (find-symbol route *default-design*) 
             (find-symbol (symbol-name 'default-layout ) *default-design*)))
          (content-html (funcall content-designer data))
-         (data (append data (list (list :data :html content-html)))))
+         (data (append data (list (list :innerhtml content-html)) nil)))
     (funcall page-designer data)))
