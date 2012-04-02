@@ -77,46 +77,16 @@ alter user <dbuser> with password '<dbpassword>';
 (sovereign-of "The Netherlands")
 
 
-(make-dao 'country :name "Германия" :inhabitants 80000000 :sovereign "Меркель")
-
-(query "select * from country_table")
-;;(("The Netherlands" 16400000 "Beatrix") ("Croatia" 4500000 :NULL)
-;; ("Германия" 80000000 "Меркель"))
-
-(query (:select '* :from '#:country-table))
-;;(("The Netherlands" 16400000 "Beatrix") ("Croatia" 4500000 :NULL)
-;;  ("Германия" 80000000 "Меркель"))
-;;3
-
-(query (:select '* :from '#:country-table) :alist)
-;;((:NAME . "The Netherlands") (:INHABITANTS . 16400000) (:SOVEREIGN . "Beatrix"))
-;;3
-
-(query (:select '* :from '#:country-table) :alists)
-;; (((:NAME . "The Netherlands") (:INHABITANTS . 16400000)
-;;     (:SOVEREIGN . "Beatrix"))
-;;   ((:NAME . "Croatia") (:INHABITANTS . 4500000) (:SOVEREIGN . :NULL))
-;;   ((:NAME . "Германия") (:INHABITANTS . 80000000) (:SOVEREIGN . "Меркель")))
-;; 3
-
-
-(defparameter *prod-id* 0 "Переменная автоинкремента для product")
-
-(defun *prod-id* ()
-  "Автоинкремент для product"
-  (incf *prod-id*))
-
-(defclass product ()
-  ((id :col-type integer :initarg :id :accessor product-id)
-   (name :col-type string :initarg :name :accessor product-name))
-  (:metaclass dao-class)
-  (:keys id))
 
 (defun add-product (name)
-    "Проверка на дубликат в БД"
-    (make-dao 'product
-              :id (*prod-id*)
-              :name name))
+  "Проверка на дубликат в БД"
+  (make-dao
+   'product
+   :price (inc-product-id)
+   :name "wefew"
+   :id 6))
+
+
 
 (defparameter *opname-id* 0
     "Переменная автоинкремента для opname")
