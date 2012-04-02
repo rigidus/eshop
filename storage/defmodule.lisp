@@ -6,7 +6,7 @@
 ;;;; Author: Glukhov Michail aka Rigidus <i.am.rigidus@gmail.com>
 
 (restas:define-module #:eshop.storage
-    (:use #:closer-mop #:cl #:iter #:alexandria #:anaphora #:json)
+    (:use #:closer-mop #:cl #:iter #:alexandria #:anaphora #:json #:postmodern)
   (:shadowing-import-from :closer-mop
                           :defclass
                           :defmethod

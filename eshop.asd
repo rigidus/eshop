@@ -14,7 +14,8 @@
                  #:cl-ppcre
                  #:restas-directory-publisher
                  #:closure-template
-                 #:cl-json)
+                 #:cl-json
+                 #:postmodern)
   :serial       t
   :components   ((:file "defmodule")
                  (:static-file "daemon.conf")

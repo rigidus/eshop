@@ -1,117 +1,69 @@
-ssh -2Nf -L 4005:localhost:4005 192.168.1.11
+;; ssh -2Nf -L 4005:localhost:4005 192.168.1.11
 
-опции класса: :table-name (по умолчанию используется имя класса),
-              :keys для предоставления множества столбцов для первичного ключя таблицы.
-Если первичного ключа нет, такие операции, как update-dao и get-dao не будут работать.
-Форма (or db-null integer) для столбца, который может иметь значения NULL. 
-================================================================
-(ql:quickload '(#:postmodern #:cl-json #:restas))
-(defpackage #:test (:use #:cl #:postmodern))
-         (in-package #:test)
-================================================================
-(ql:quickload '(#:postmodern #:cl-json #:restas))
+;; опции класса: :table-name (по умолчанию используется имя класса),
+;;               :keys для предоставления множества столбцов для первичного ключя таблицы.
+;; Если первичного ключа нет, такие операции, как update-dao и get-dao не будут работать.
+;; Форма (or db-null integer) для столбца, который может иметь значения NULL.
 
-(restas:define-module #:restas.testdb
-  (:use #:cl #:postmodern)
-;;;  (:export ..)
-           )
-(in-package #:restas.testdb)
 (defvar *spec-db* '("ravtadb" "ravta" "ravta1111" "localhost"))
 (defvar *empty-result* "нихрена не нашлось :(")
 (defvar *price-max* 536870911 "32-разрядное most-positive-fixnum")
 (defvar *price-max* most-positive-fixnum)
 
-====
-(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
-(query (:select '* :from 'products))
-;;;(query "select * from products")
-====================
-====================
 
-
-(restas:define-route group ("group")
-  (let (resp-list)
-    (setf resp-list (with-connection *spec-db*
-                      (query (:select 'name
-                                      :from 'p_groups)
-                             :alists)))
-    (format nil "{ \"response\": ~A }" 
-            (if resp-list (json:encode-json-to-string resp-list) *empty-result*))))
-
-
-
-(restas:start '#:restas.testdb :port 4242 :address "localhost")
-====================
-(defclass country ()
-  ((name :col-type string :initarg :name
-         :reader country-name)
-   (inhabitants :col-type integer :initarg :inhabitants
-                :accessor country-inhabitants)
-   (sovereign :col-type (or db-null string) :initarg :sovereign
-              :accessor country-sovereign))
-  (:metaclass dao-class)
-  (:keys name))
-
-(dao-table-definition 'country)
-==>
-(execute (dao-table-definition 'country))
-
-(insert-dao (make-instance 'country :name "The Netherlands"
-                                    :inhabitants 16400000
-                                    :sovereign "Beatrix"))
-(insert-dao (make-instance 'country :name "Croatia"
-                                    :inhabitants 4400000))
-
-(let ((croatia (get-dao 'country "Croatia")))
-  (setf (country-inhabitants croatia) 4500000)
-  (update-dao croatia))
-(query (:select '* :from 'country))
-
-
-====================
-====================
 
 (defvar *prod-id* 0
   "Переменная автоинкремента для product")
+
 (defun *prod-id* ()
   "Автоинкремент для product"
   (incf *prod-id*))
+
 (defclass product ()
   ((id :col-type integer :initarg :id :accessor product-id)
    (name :col-type string :initarg :name :accessor product-name))
   (:metaclass dao-class)
   (:keys id))
+
 (defun add-product (name)
   "Проверка на дубликат в БД"
-  (make-dao 'product 
+  (make-dao 'product
             :id (*prod-id*)
             :name name))
+
 (defvar *opname-id* 0
   "Переменная автоинкремента для opname")
+
 (defun *opname-id* ()
   "Автоинкремент для opname"
   (incf *opname-id*))
+
 (defclass opname ()
   ((id :col-type integer :initarg :id :accessor opnamet-id)
    (name :col-type string :initarg :name :accessor opname-name))
   (:metaclass dao-class)
   (:keys id))
+
 (defun add-opname (name)
   "Проверка на дубликат в БД"
-  (make-dao 'opname 
+  (make-dao 'opname
             :id (*opname-id*)
             :name name))
+
 (defvar *option-id* 0
   "Переменная автоинкремента для option")
+
 (defun *option-id* ()
   "Автоинкремент для option"
   (incf *option-id*))
+
 (defclass option ()
   ((pr-id :col-type integer :initarg :pr-id :accessor option-pr-id)
    (op-id :col-type integer :initarg :op-id :accessor option-op-id)
    (value :col-type string :initarg :value :accessor option-value))
   (:metaclass dao-class)
   (:keys pr-id op-id value))
+
 (defun add-option (pr-name &rest opt-list)
   "opt-list должен быть plist-ом"
   (unless (and opt-list
@@ -133,8 +85,6 @@ ssh -2Nf -L 4005:localhost:4005 192.168.1.11
                        :value op-val)))))
 
 
-========
-(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
 
 (execute (dao-table-definition 'product))
 (execute (dao-table-definition 'opname))
@@ -157,10 +107,6 @@ ssh -2Nf -L 4005:localhost:4005 192.168.1.11
 (add-option "oil" "объём" "3,5л." "объём" "4,5л.")
 
 (add-option "масло U" "вес" "7,5г")
-
-(disconnect-toplevel)
-========
-
 
 (dao-table-definition 'product)
 (dao-table-definition 'opname)
