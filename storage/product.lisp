@@ -22,57 +22,46 @@ alter user <dbuser> with password '<dbpassword>';
 
 |#
 
-(ql:quickload '(#:postmodern #:cl-json #:restas))
+
+(connect-toplevel "restodb" "resto" "resto1111" "localhost")
 
 
-(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
+(let ((inc-product-id 0))
+  (defun inc-product-id ()
+    (incf inc-product-id)))
 
 
-(defclass country ()
-  ((name              :col-type string          :initarg :name            :initform ""        :reader country-name)
-   (inhabitants       :col-type integer         :initarg :inhabitants     :initform ""        :accessor country-inhabitants)
-   (sovereign         :col-type (or db-null string) :initarg :sovereign   :initform ""        :accessor country-sovereign))
+(defclass product ()
+  ((id                :col-type integer         :initarg :id              :initform 0         :accessor id)
+   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
+   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
+   (opts                                        :initarg :opts            :initform ""        :accessor opts))
   (:metaclass dao-class)
-  (:keys name)
-  (:table-name "country_table"))
+  (:keys id))
+
+;; (execute (dao-table-definition 'product))
 
 
-(dao-table-definition 'country)
+(insert-dao
+ (make-instance
+  'product
+  :id (inc-product-id)
+  :name "Тестовый Продукт"
+  :price 200
+  :opts nil))
 
-(execute (dao-table-definition 'country))
-
-(insert-dao (make-instance 'country :name "The Netherlands" :inhabitants 16400000 :sovereign "Beatrix"))
-
-(defparameter *ttt* (make-instance 'country :name "Croatia" :inhabitants 4400000))
-
-(insert-dao *ttt*)
-
-(country-name *ttt*)
-;; "Croatia"
+(query (:select '* :from 'product))
 
 
-(let ((croatia (get-dao 'country "Croatia")))
-  (setf (country-inhabitants croatia) 4500000)
-  (update-dao croatia))
+(let ((test-product (get-dao 'product 4)))
+  (setf (price test-product) 4500000)
+  (update-dao test-product))
 
 (query (:select '* :from 'country_table))
 
-(country-inhabitants *ttt*)
-;; 4400000
+(dao-keys 'product)
 
-(setf (country-inhabitants *ttt*) 4500000)
-;; 4500000
-
-(update-dao *ttt*)
-
-(country-inhabitants *ttt*)
-;;4500000
-
-(dao-keys 'country )
-;; (NAME)
-
-(dao-keys *ttt*)
-;; ("Croatia")
+(dao-keys (get-dao 'product 4))
 
 (sql (:select 'relname :from 'pg-catalog.pg-class
               :inner-join 'pg-catalog.pg-namespace :on (:= 'relnamespace 'pg-namespace.oid)
