@@ -45,31 +45,56 @@ alter user <dbuser> with password '<dbpassword>';
 ;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
 
 
-;; === OPTNAME
+
+;; === LANG ===
+
+(incrementor lang)
+
+(defclass lang ()
+  ((id                :col-type integer         :initarg :id             :initform (incf-lang-id) :accessor id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
+  (:metaclass dao-class)
+  (:keys id))
+
+(execute (dao-table-definition 'lang))
+
+
+;; === OPTNAME ===
+
+(incrementor optname)
 
 (defclass optname ()
-  ((id                :col-type integer         :initarg :id             :initform 0          :accessor id)
-   (name-id           :col-type integer         :initarg :name-id        :initform 0          :accessor value-id)
-   (value-id          :col-type integer         :initarg :value-id       :initform 0          :accessor value-id)
-   (optgrp            :col-type string          :initarg :name           :initform ""         :accessor optgrp)
-   (optype            :col-type string          :initarg :name           :initform ""         :accessor opttype))
+  ((id                :col-type integer         :initarg :id             :initform (incf-optname-id) :accessor id)
+   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
   (:metaclass dao-class)
-  (:keys product-id name-id value-id))
+  (:keys id))
 
-(execute (dao-table-definition 'option))
+(execute (dao-table-definition 'optname))
 
+
+;; === OPTVALUE ===
+
+(incrementor optvalue)
+
+(defclass optvalue ()
+  ((id                :col-type integer         :initarg :id             :initform (incf-optvalue-id) :accessor id)
+   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
+  (:metaclass dao-class)
+  (:keys id))
+
+(execute (dao-table-definition 'optvalue))
 
 
 ;; === OPTION ===
 
 (defclass option ()
   ((product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id)
-   (name-id           :col-type integer         :initarg :name-id        :initform 0          :accessor value-id)
-   (value-id          :col-type integer         :initarg :value-id       :initform 0          :accessor value-id)
-   (optgrp            :col-type string          :initarg :name           :initform ""         :accessor optgrp)
-   (optype            :col-type string          :initarg :name           :initform ""         :accessor opttype))
+   (optname-id        :col-type integer         :initarg :optname-id     :initform 0          :accessor optname-id)
+   (optvalue-id       :col-type integer         :initarg :optvalue-id    :initform 0          :accessor optvalue-id))
   (:metaclass dao-class)
-  (:keys product-id name-id value-id))
+  (:keys product-id optname-id optvalue-id))
 
 (execute (dao-table-definition 'option))
 
@@ -81,7 +106,6 @@ alter user <dbuser> with password '<dbpassword>';
 ;; class product
 (defclass product ()
   ((id                :col-type integer         :initarg :id              :initform (incf-product-id)  :accessor id)
-   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
    (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
    (opts                                        :initarg :opts            :initform ""        :accessor opts))
   (:metaclass dao-class)
@@ -91,6 +115,71 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 ;; === TESTS ===
+
+
+(defun db-init ()
+  ;; drop
+  (query (sql (:drop-table :if-exists 'lang)))
+  (query (sql (:drop-table :if-exists 'optname)))
+  (query (sql (:drop-table :if-exists 'optvalue)))
+  (query (sql (:drop-table :if-exists 'option)))
+  (query (sql (:drop-table :if-exists 'product)))
+  ;; create tables
+  (execute (dao-table-definition 'lang))
+  (execute (dao-table-definition 'optname))
+  (execute (dao-table-definition 'optvalue))
+  (execute (dao-table-definition 'option))
+  (execute (dao-table-definition 'product))
+  ;; incrementors
+  (incrementor lang)
+  (incrementor optname)
+  (incrementor optvalue)
+  (incrementor product)
+  ;; clear tables
+  (query (:delete-from 'product))
+  (query (:delete-from 'option))
+  (query (:delete-from 'optname))
+  (query (:delete-from 'optvalue))
+  (query (:delete-from 'lang))
+  ;; lang
+  (make-dao 'lang :val "ru")
+  (make-dao 'lang :val "en")
+  ;; optname
+  (make-dao 'optname :lang-id 1 :val "рус опт 1 имя")
+  (make-dao 'optname :lang-id 1 :val "рус опт 2 имя")
+  (make-dao 'optname :lang-id 2 :val "eng opt 1 name")
+  (make-dao 'optname :lang-id 2 :val "eng opt 1 name")
+  ;; optvalue
+  (make-dao 'optvalue :lang-id 1 :val "рус опт 1 значение")
+  (make-dao 'optvalue :lang-id 1 :val "рус опт 2 значение")
+  (make-dao 'optvalue :lang-id 2 :val "eng opt 1 value")
+  (make-dao 'optvalue :lang-id 2 :val "eng opt 1 value")
+  ;; option
+  (make-dao 'option :product-id 1 :optname-id 1 :optvalue-id 1)
+  (make-dao 'option :product-id 1 :optname-id 2 :optvalue-id 2)
+  (make-dao 'option :product-id 1 :optname-id 3 :optvalue-id 3)
+  (make-dao 'option :product-id 1 :optname-id 4 :optvalue-id 4)
+
+  ;; product
+  (make-dao 'product :price (random 700))
+  )
+
+
+(db-init)
+
+
+
+(query (sql (:select '* :from 'product :where (:= 'id 1))))
+
+(loop
+   :for item
+   :in (query (sql (:select '* :from 'option :where (:= 'product-id 1))))
+   :collect (destructuring-bind (product-id name-id value-id)
+                (query (sql (:select '
+
+
+
+
 
 ;; insert product
 (insert-dao
