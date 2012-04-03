@@ -23,7 +23,7 @@ alter user <dbuser> with password '<dbpassword>';
 |#
 
 
-(connect-toplevel "restodb" "resto" "resto1111" "localhost")
+(connect-toplevel "ravtadb" "ravta" "ravta1111" "localhost")
 
 ;; produce incrementor closure
 (defmacro incrementor (name)
@@ -45,19 +45,61 @@ alter user <dbuser> with password '<dbpassword>';
 ;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
 
 
+;; === LANG ===
+
+(incrementor lang)
+
+(defclass lang ()
+  ((id                :col-type integer         :initarg :id             :initform (incf-lang-id) :accessor id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
+  (:metaclass dao-class)
+  (:keys id))
+
+;; (execute (dao-table-definition 'lang))
+
+
+;; === NAME ===
+
+(incrementor name)
+
+(defclass name ()
+  ((id                :col-type integer         :initarg :id             :initform (incf-name-id) :accessor id)
+   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
+  (:metaclass dao-class)
+  (:keys id))
+
+;; (execute (dao-table-definition 'name))
+
+
+;; === VALUE ===
+
+(incrementor value)
+
+(defclass value ()
+  ((id                :col-type integer         :initarg :id             :initform (incf-value-id) :accessor id)
+   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
+  (:metaclass dao-class)
+  (:keys id))
+
+;; (execute (dao-table-definition 'value))
+
 
 ;; === OPTION ===
 
 (defclass option ()
   ((product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id)
-   (name              :col-type string          :initarg :name           :initform ""         :accessor name)
-   (value             :col-type string          :initarg :value          :initform ""         :accessor value)
+   (name-id           :col-type integer         :initarg :name-id        :initform 0          :accessor name-id)
+   (value-id          :col-type integer         :initarg :value-id       :initform 0          :accessor value-id)
    (optgrp            :col-type string          :initarg :name           :initform ""         :accessor optgrp)
    (optype            :col-type string          :initarg :name           :initform ""         :accessor opttype))
   (:metaclass dao-class)
-  (:keys product-id name value))
+  (:keys product-id name-id value-id))
 
-(execute (dao-table-definition 'option))
+;; (execute (dao-table-definition 'option))
+
+
 
 
 ;; === PRODUCT ===
@@ -73,7 +115,7 @@ alter user <dbuser> with password '<dbpassword>';
   (:metaclass dao-class)
   (:keys id))
 
-;; (execute (dao-table-definition 'product))
+(execute (dao-table-definition 'product))
 
 
 ;; === TESTS ===
@@ -127,15 +169,15 @@ alter user <dbuser> with password '<dbpassword>';
 (create-product :name "Еще продукт" :price (random 700))
 
 
-(make-dao 'option
-          :product-id 3
-          :name "опт-name2"
-          :value "опт-value2")
+;; (make-dao 'option
+;;           :product-id 3
+;;           :name "опт-name2"
+;;           :value "опт-value2")
 
-(query (:select '* :from 'option))
+;; (query (:select '* :from 'option))
 
 
-(add-option-to-product-by-id 5 "оптнаме2" "оптвалуе2")
+;; (add-option-to-product-by-id 5 "оптнаме2" "оптвалуе2")
 
 
 
