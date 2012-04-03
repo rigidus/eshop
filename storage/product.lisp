@@ -171,11 +171,15 @@ alter user <dbuser> with password '<dbpassword>';
 
 (query (sql (:select '* :from 'product :where (:= 'id 1))))
 
-(loop
-   :for item
-   :in (query (sql (:select '* :from 'option :where (:= 'product-id 1))))
-   :collect (destructuring-bind (product-id name-id value-id)
-                (query (sql (:select '
+(remove-if #'null
+           (loop
+              :for item
+              :in (query (sql (:select '* :from 'option :where (:= 'product-id 1))))
+              :collect (destructuring-bind (product-id optname-id optvalue-id)
+                           item
+                         (query (sql (:select 'id 'lang-id 'val :from 'optname :where (:and
+                                                                                       (:= 'id optname-id)
+                                                                                       (:= 'lang-id 2))))))))
 
 
 
