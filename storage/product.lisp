@@ -41,8 +41,22 @@ alter user <dbuser> with password '<dbpassword>';
 ;;   (LIST
 ;;     (DEFUN INCF-PRODUCT-ID ()
 ;;       (INCF INC-PRODUCT-ID))
-;;     (DEFUN INCF-PRODUCT-ID (INIT-VALUE)
+;;     (DEFUN INIT-PRODUCT-ID (INIT-VALUE)
 ;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
+
+
+;; === OPTNAME
+
+(defclass optname ()
+  ((id                :col-type integer         :initarg :id             :initform 0          :accessor id)
+   (name-id           :col-type integer         :initarg :name-id        :initform 0          :accessor value-id)
+   (value-id          :col-type integer         :initarg :value-id       :initform 0          :accessor value-id)
+   (optgrp            :col-type string          :initarg :name           :initform ""         :accessor optgrp)
+   (optype            :col-type string          :initarg :name           :initform ""         :accessor opttype))
+  (:metaclass dao-class)
+  (:keys product-id name-id value-id))
+
+(execute (dao-table-definition 'option))
 
 
 
@@ -50,12 +64,12 @@ alter user <dbuser> with password '<dbpassword>';
 
 (defclass option ()
   ((product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id)
-   (name              :col-type string          :initarg :name           :initform ""         :accessor name)
-   (value             :col-type string          :initarg :value          :initform ""         :accessor value)
+   (name-id           :col-type integer         :initarg :name-id        :initform 0          :accessor value-id)
+   (value-id          :col-type integer         :initarg :value-id       :initform 0          :accessor value-id)
    (optgrp            :col-type string          :initarg :name           :initform ""         :accessor optgrp)
    (optype            :col-type string          :initarg :name           :initform ""         :accessor opttype))
   (:metaclass dao-class)
-  (:keys product-id name value))
+  (:keys product-id name-id value-id))
 
 (execute (dao-table-definition 'option))
 
@@ -73,7 +87,7 @@ alter user <dbuser> with password '<dbpassword>';
   (:metaclass dao-class)
   (:keys id))
 
-;; (execute (dao-table-definition 'product))
+(execute (dao-table-definition 'product))
 
 
 ;; === TESTS ===
@@ -135,14 +149,14 @@ alter user <dbuser> with password '<dbpassword>';
 (query (:select '* :from 'option))
 
 
-(add-option-to-product-by-id 5 "оптнаме2" "оптвалуе2")
+;; (add-option-to-product-by-id 5 "оптнаме2" "оптвалуе2")
 
 
 
-;; get options
-(query (sql (:select '* :from 'product
-                     :inner-join 'option :on (:= 'product.id 'option.product-id)
-                     :where (:= 'product.id 3))))
+;; ;; get options
+;; (query (sql (:select '* :from 'product
+;;                      :inner-join 'option :on (:= 'product.id 'option.product-id)
+;;                      :where (:= 'product.id 3))))
 
 
 ;; (defun add-option (pr-name &rest opt-list)
