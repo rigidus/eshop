@@ -27,7 +27,7 @@
 {template header}
 <header id="main-header"
 ><h1 id="main-logo"></h1
->{if $nav}{call navigation data="$nav"/}{/if}</header>
+>{if $meta.site.nav.global}{call navigation data="$meta.site.nav.global"/}{/if}</header>
 {/template}
 
 {template footer}
@@ -40,11 +40,11 @@
 {/template}
 
 {template class}
-{sp}class="{foreach $c in $class}{if not isFirst($c)}{sp}{/if}{$c |id}{/foreach}"
+{sp}class="{foreach $c in $class}{if not isFirst($c)}{sp}{/if}{$c}{/foreach}"
 {/template}
 
 {template menu}
-<ul{if $id} id="{$id |id}"{/if}{if $class}{call class data="all"/}{/if}
+<ul{if $id} id="menu-{$id |id}"{/if}{if $class}{call class data="all"/}{/if}
 >{if $items}{foreach $item in $items}<li{if $item.items} class="submenu"{/if}
 ><a href="{$item.link}"><span
 >{$item.caption}</span></a>{if $helper}<{$helper}></{$helper}
@@ -52,11 +52,11 @@
 {/template}
 
 {template navigation}
-<nav{if $id} id="{('nav-'+$id)|id}"{/if}>{call menu data="all"/}</nav>
+<nav{if $id} id="nav-{$id |id}"{/if}>{call menu data="all"/}</nav>
 {/template}
 
 {template jsrc}
-<script src="{$src}" type="text/javascript"></script>
+<script type="text/javascript"{foreach $d in $data} data-{$d[0]}="{$d[1]}"{/foreach} src="{$src}"></script>
 {/template}
 {template jstr}
 <script type="text/javascript">{$js |noAutoescape}</script>
@@ -75,7 +75,7 @@
 <meta charset="{if $charset}{$charset}{else}utf-8{/if}"
 /><title>{$page.title}{sp}{$site.title}</title
 >{if $site.meta}{call metatags data="$site"/}{/if}{if $page.meta}{call metatags data="$page"/}{/if}
-<link href="{call name /}.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="design/{call name /}.css" media="screen" rel="stylesheet" type="text/css" />
 {/template}
 
 {template page}
@@ -83,8 +83,8 @@
 ><head
 >{call meta data="$meta"/}</head
 >{\n}<body{if $meta.id} id="{$meta.id |id}"{/if}{if $meta.class}{call class data="$meta"/}{/if}
->{if $innerhtml}{$innerhtml |noAutoescape}{/if}</body
->{if $meta.mainsrc}{call jsrc data="$meta.mainsrc" /}
+>{if $innerhtml.data}{$innerhtml.data |noAutoescape}{/if}</body
+>{if $app.src}{call jsrc data="$app" /}
 {/if}{if $meta.mainscript}{call jstr data="$meta.mainscript" /}{/if}</html>
 {/template}
 
@@ -104,4 +104,10 @@
 
 {template index}
 {call defaultLayout data="all"/}
+{/template}
+
+{template design-style}
+{literal}
+body {margin:0}
+{/literal}
 {/template}

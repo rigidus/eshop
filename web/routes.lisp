@@ -11,8 +11,15 @@
            :copyright "2012 () Copyleft"
            :meta ((:name "keywords"
                    :content "e-commerce, oil, eshop, catalog, download, free")
-                  (:http-equiv "X-UA-Compatible" :content "IE=edge")))
-    :page (:id "index" :slug "root" :title "Welcome" :name "Welcome to eshop"
+                  (:http-equiv "X-UA-Compatible" :content "IE=edge"))
+           :nav ( :global ( :id "global"
+                            :items ((:link "/" :caption "HOME")
+                                    (:link "products" :caption "Catalog"
+                                     :items
+                                           ((:link "products/oil" :caption "OIL")
+                                            (:caption "coil" :link "products/coil")))
+                                    (:link "about" :caption "about Us")))))
+    :page (:id "index" :slug "/" :title "Welcome" :name "Welcome to eshop"
            :lang "en-UK"
            :meta ((:name "author"
                    :content "Me")
@@ -20,15 +27,32 @@
     :charset "utf-8"
     :class ("lisp" "ajax"))
    (:app
-    :src "app.js" :name "app"
-    :data (("main" "scripts/main") ("version" "git-20120402")))
-   (:nav
-    :items ((:link "/" :caption "Home") (:link "about" :caption "About us"))
-    :id "global" )))
+    :src "require-jquery.js" :name "app"
+    :data (("main" "main.js") ("version" "git-20120402")))))
 
-(restas:define-route index ("")
+(restas:define-route index
+    ("")
    content-defaults-en)
 
+(restas:define-route design-style
+    ("design/:(design).css"
+     :render-method (make-instance 'eshop.web.css)
+     :content-type "text/css")
+  design)
+
+(restas:define-route app-js
+    (":(script).js"
+     :content-type "application/javascript")
+  (path (concatenate 'string "app/" script ".js")))
+
+(restas:define-route submodule-js
+    (":(module)/:(script).js"
+     :content-type "application/javascript")
+  (path (concatenate 'string
+                     (if (string= module "app")
+                         "app"
+                         (concatenate 'string "app/" module))
+                     "/" script ".js")))
 
 (restas:define-route product ("product/:uid"
                               :parse-vars (list :uid #'parse-integer)))
