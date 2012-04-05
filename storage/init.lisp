@@ -26,9 +26,6 @@
 
 (defparameter *h-resto* (make-hash-table))
 
-
-
-
 (setf (gethash 1 *h-resto*)
       (make-instance
        'resto

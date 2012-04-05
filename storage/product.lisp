@@ -197,6 +197,39 @@ alter user <dbuser> with password '<dbpassword>';
   (update-dao test-product))
 
 
+;; === PRODUCT ===
+
+(incrementor product)
+
+;; class product
+(defclass product ()
+  ((id                :col-type integer         :initarg :id              :initform (incf-product-id)  :accessor id)
+   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
+   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
+   (opts                                        :initarg :opts            :initform ""        :accessor opts))
+  (:metaclass dao-class)
+  (:keys id))
+
+(execute (dao-table-definition 'product))
+
+
+;; === TESTS ===
+
+;; insert product
+(insert-dao
+ (make-instance 'product
+  :name "Тестовый Продукт"
+  :price (random 700)))
+
+(query (:select '* :from 'product))
+;; (query (:delete-from 'product))
+
+;; update product
+(let ((test-product (get-dao 'product 1)))
+  (setf (price test-product) 4500000)
+  (update-dao test-product))
+
+
 ;; Prepared Statements
 (defprepared price-of-product
     (:select 'price :from 'product :where (:= 'name '$1))
@@ -243,10 +276,10 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 
-;; ;; get options
-;; (query (sql (:select '* :from 'product
-;;                      :inner-join 'option :on (:= 'product.id 'option.product-id)
-;;                      :where (:= 'product.id 3))))
+;; get options
+(query (sql (:select '* :from 'product
+                     :inner-join 'option :on (:= 'product.id 'option.product-id)
+                     :where (:= 'product.id 3))))
 
 
 ;; (defun add-option (pr-name &rest opt-list)
