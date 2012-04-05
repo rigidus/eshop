@@ -1,39 +1,58 @@
-;; (in-package #:eshop.web)
+(in-package #:eshop.web)
+(defparameter
+ content-defaults-en
+ '(
+   ;; content structure
+   ;; FIXME add real data
+   (:data :html "Demo text")
+   (:meta
+    :site (:name "eshop" :slogan "we can do it all"
+           :title "e-commerce oil eshop catalog download free seo"
+           :copyright "2012 () Copyleft"
+           :meta ((:name "keywords"
+                   :content "e-commerce, oil, eshop, catalog, download, free")
+                  (:http-equiv "X-UA-Compatible" :content "IE=edge"))
+           :nav ( :global ( :id "global"
+                            :items ((:link "/" :caption "HOME")
+                                    (:link "products" :caption "Catalog"
+                                     :items
+                                           ((:link "products/oil" :caption "OIL")
+                                            (:caption "coil" :link "products/coil")))
+                                    (:link "about" :caption "about Us")))))
+    :page (:id "index" :slug "/" :title "Welcome" :name "Welcome to eshop"
+           :lang "en-UK"
+           :meta ((:name "author"
+                   :content "Me")
+                  (:name "description" :content "welcome mesage")))
+    :charset "utf-8"
+    :class ("lisp" "ajax"))
+   (:app
+    :src "require-jquery.js" :name "app"
+    :data (("main" "main.js") ("version" "git-20120402")))))
 
-;; (restas:define-route request-static-route-img ("/img/*")
-;;   (let ((full-uri (format nil "~a" (restas:request-full-uri))))
-;;     (pathname (concatenate 'string *basedir* "/img/" (subseq full-uri (search "/img/" full-uri))))))
+(restas:define-route index
+    ("")
+   content-defaults-en)
 
-;; (restas:define-route request-static-route-pic ("/pic/*")
-;;     (let* ((full-uri (format nil "~a" (restas:request-full-uri)))
-;;                     (path-to-img (ppcre:regex-replace ".*/pic/(\\w{1,})/(\\d{1,3})(\\d{0,})/(.*)$" full-uri "\\1/\\2/\\2\\3/\\4")))
-;;           (pathname (format nil "~a/~a" *path-to-product-pics* path-to-img))))
+(restas:define-route design-style
+    ("design/:(design).css"
+     :render-method (make-instance 'eshop.web.css)
+     :content-type "text/css")
+  design)
 
-;; (restas:define-route request-static-route-css ("/css/*")
-;;     (let ((full-uri (format nil "~a" (restas:request-full-uri))))
-;;           (pathname (concatenate 'string *path-to-dropbox* "/htimgs/" (subseq full-uri (search "/css/" full-uri))))))
+(restas:define-route app-js
+    (":(script).js"
+     :content-type "application/javascript")
+  (path (concatenate 'string "app/" script ".js")))
 
-;; (restas:define-route request-static-route-js ("/js/*")
-;;     (let ((full-uri (format nil "~a" (restas:request-full-uri))))
-;;           (pathname (concatenate 'string *path-to-dropbox* "/htimgs/" (subseq full-uri (search "/js/" full-uri))))))
+(restas:define-route submodule-js
+    (":(module)/:(script).js"
+     :content-type "application/javascript")
+  (path (concatenate 'string
+                     (if (string= module "app")
+                         "app"
+                         (concatenate 'string "app/" module))
+                     "/" script ".js")))
 
-;; (restas:define-route request-route-static-favicon ("/favicon.ico")
-;;       (pathname (concatenate 'string *path-to-dropbox* "/htimgs/img/favicon.ico")))
-
-;; (restas:define-route request-route-static-robots ("/robots.txt")
-;;       (pathname (concatenate 'string *path-to-conf* "/robots.txt")))
-
-;; (restas:define-route request-route-static-yml ("/yml.xml")
-;;       (pathname (concatenate 'string *path-to-conf* "/yml.xml")))
-
-;; (restas:define-route request-route-static-sitemap ("/sitemap.xml")
-;;       (pathname (concatenate 'string *path-to-conf* "/sitemap.xml")))
-
-;; (restas:define-route request-route-static-sitemap-index ("/sitemap-index.xml")
-;;       (pathname (concatenate 'string *path-to-conf* "/sitemap-index.xml")))
-
-;; (restas:define-route request-route-static-sitemap1 ("/sitemap1.xml")
-;;       (pathname (concatenate 'string *path-to-conf* "/sitemap1.xml")))
-
-;; (restas:define-route request-route-static-sitemap2 ("/sitemap2.xml")
-;;       (pathname (concatenate 'string *path-to-conf* "/sitemap2.xml")))
+(restas:define-route product ("product/:uid"
+                              :parse-vars (list :uid #'parse-integer)))
