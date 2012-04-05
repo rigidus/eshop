@@ -48,279 +48,165 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;; === LANG ===
 
-(incrementor lang)
-
 (defclass lang ()
   ((id                :col-type integer         :initarg :id             :initform (incf-lang-id) :accessor id)
    (val               :col-type string          :initarg :val            :initform ""         :accessor val))
   (:metaclass dao-class)
   (:keys id))
 
-(execute (dao-table-definition 'lang))
+(defun init-lang ()
+  (query (sql (:drop-table :if-exists 'lang)))
+  (incrementor lang)
+  (execute (dao-table-definition 'lang))
+  (make-dao 'lang :val "ru")
+  (make-dao 'lang :val "en"))
+
+(init-lang)
 
 
 ;; === OPTNAME ===
 
-(incrementor optname)
-
 (defclass optname ()
-  ((id                :col-type integer         :initarg :id             :initform (incf-optname-id) :accessor id)
+  ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
    (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
    (val               :col-type string          :initarg :val            :initform ""         :accessor val))
-  (:metaclass dao-class)
-  (:keys id))
+  (:metaclass dao-class))
 
-(execute (dao-table-definition 'optname))
+(defun init-optname ()
+  (query (sql (:drop-table :if-exists 'optname)))
+  (execute (dao-table-definition 'optname))
+  (make-dao 'optname :val "имя-опции-1" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
+  (make-dao 'optname :val "option-name-1"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single))
+  (make-dao 'optname :val "имя-опции-2" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
+  (make-dao 'optname :val "option-name-2"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single)))
+
+(init-optname)
 
 
 ;; === OPTVALUE ===
 
-(incrementor optvalue)
-
 (defclass optvalue ()
-  ((id                :col-type integer         :initarg :id             :initform (incf-optvalue-id) :accessor id)
+  ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
    (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
-   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
-  (:metaclass dao-class)
-  (:keys id))
+   (val               :col-type string          :initarg :val            :initform ""         :accessor val)
+   (product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id))
+  (:metaclass dao-class))
 
-(execute (dao-table-definition 'optvalue))
+(defun init-optvalue ()
+  (query (sql (:drop-table :if-exists 'optvalue)))
+  (execute (dao-table-definition 'optvalue))
+  (make-dao 'optvalue :val "значение-опции-1" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
+  (make-dao 'optvalue :val "option-value-1"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single))
+  (make-dao 'optvalue :val "значение-опции-2" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
+  (make-dao 'optvalue :val "option-value-2"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single)))
 
+(init-optvalue)
 
 ;; === OPTION ===
 
 (defclass option ()
-  ((product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id)
-   (optname-id        :col-type integer         :initarg :optname-id     :initform 0          :accessor optname-id)
-   (optvalue-id       :col-type integer         :initarg :optvalue-id    :initform 0          :accessor optvalue-id))
-  (:metaclass dao-class)
-  (:keys product-id optname-id optvalue-id))
-
-(execute (dao-table-definition 'option))
-
-
-;; === PRODUCT ===
-
-(incrementor product)
-
-;; class product
-(defclass product ()
-  ((id                :col-type integer         :initarg :id              :initform (incf-product-id)  :accessor id)
-   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
-   (opts                                        :initarg :opts            :initform ""        :accessor opts))
+  ((id                :col-type integer         :initarg :id             :initform (incf-option-id)  :accessor id)
+   (parent-id         :col-type integer         :initarg :parent-id      :initform 0          :accessor parent-id)
+   (optype            :col-type string          :initarg :optype         :initform ""         :accessor optype))
   (:metaclass dao-class)
   (:keys id))
 
-(execute (dao-table-definition 'product))
-
-
-;; === TESTS ===
-
-
-(defun db-init ()
-  ;; drop
-  (query (sql (:drop-table :if-exists 'lang)))
-  (query (sql (:drop-table :if-exists 'optname)))
-  (query (sql (:drop-table :if-exists 'optvalue)))
+(defun init-option ()
   (query (sql (:drop-table :if-exists 'option)))
-  (query (sql (:drop-table :if-exists 'product)))
-  ;; create tables
-  (execute (dao-table-definition 'lang))
-  (execute (dao-table-definition 'optname))
-  (execute (dao-table-definition 'optvalue))
+  (incrementor option)
   (execute (dao-table-definition 'option))
-  (execute (dao-table-definition 'product))
-  ;; incrementors
-  (incrementor lang)
-  (incrementor optname)
-  (incrementor optvalue)
-  (incrementor product)
-  ;; clear tables
-  (query (:delete-from 'product))
-  (query (:delete-from 'option))
-  (query (:delete-from 'optname))
-  (query (:delete-from 'optvalue))
-  (query (:delete-from 'lang))
-  ;; lang
-  (make-dao 'lang :val "ru")
-  (make-dao 'lang :val "en")
-  ;; optname
-  (make-dao 'optname :lang-id 1 :val "рус опт 1 имя")
-  (make-dao 'optname :lang-id 1 :val "рус опт 2 имя")
-  (make-dao 'optname :lang-id 2 :val "eng opt 1 name")
-  (make-dao 'optname :lang-id 2 :val "eng opt 1 name")
-  ;; optvalue
-  (make-dao 'optvalue :lang-id 1 :val "рус опт 1 значение")
-  (make-dao 'optvalue :lang-id 1 :val "рус опт 2 значение")
-  (make-dao 'optvalue :lang-id 2 :val "eng opt 1 value")
-  (make-dao 'optvalue :lang-id 2 :val "eng opt 1 value")
-  ;; option
-  (make-dao 'option :product-id 1 :optname-id 1 :optvalue-id 1)
-  (make-dao 'option :product-id 1 :optname-id 2 :optvalue-id 2)
-  (make-dao 'option :product-id 1 :optname-id 3 :optvalue-id 3)
-  (make-dao 'option :product-id 1 :optname-id 4 :optvalue-id 4)
+  (let ((option-id (id (make-dao 'option :optype "option"))))
+    (query (:update 'optname :set 'option-id option-id :where (:= 'val "имя-опции-1")))
+    (query (:update 'optname :set 'option-id option-id :where (:= 'val "option-name-1")))
+    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "значение-опции-1")))
+    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "option-value-1"))))
+  (let ((option-id (id (make-dao 'option :optype "option"))))
+    (query (:update 'optname :set 'option-id option-id :where (:= 'val "имя-опции-2")))
+    (query (:update 'optname :set 'option-id option-id :where (:= 'val "option-name-2")))
+    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "значение-опции-2")))
+    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "option-value-2")))))
 
-  ;; product
-  (make-dao 'product :price (random 700))
-  )
-
-
-(db-init)
-
-
-(remove-if #'null
-           (loop
-              :for item
-              :in (query (sql (:select '* :from 'option :where (:= 'product-id 1))))
-              :collect (destructuring-bind (product-id optname-id optvalue-id)
-                           item
-                         (query (sql (:select 'id 'lang-id 'val :from 'optname :where (:and
-                                                                                       (:= 'id optname-id)
-                                                                                       (:= 'lang-id 2))))))))
-
-
-
-
-
-;; insert product
-(insert-dao
- (make-instance 'product
-  :name "Тестовый Продукт"
-  :price (random 700)))
-
-(query (:select '* :from 'product))
-;; (query (:delete-from 'product))
-
-;; update product
-(let ((test-product (get-dao 'product 1)))
-  (setf (price test-product) 4500000)
-  (update-dao test-product))
+(init-option)
 
 
 ;; === PRODUCT ===
 
-(incrementor product)
-
 ;; class product
 (defclass product ()
-  ((id                :col-type integer         :initarg :id              :initform (incf-product-id)  :accessor id)
-   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
-   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
-   (opts                                        :initarg :opts            :initform ""        :accessor opts))
+  ((id                :col-type integer         :initarg :id              :initform (incf-product-id) :accessor id)
+   (category-id       :col-type integer         :initarg :category-id     :initform 0         :accessor category-id)
+   (options                                     :initarg :opions          :initform ""        :accessor options))
   (:metaclass dao-class)
   (:keys id))
 
-(execute (dao-table-definition 'product))
+
+(defun init-product ()
+  (query (sql (:drop-table :if-exists 'product)))
+  (incrementor product)
+  (execute (dao-table-definition 'product))
+  (make-dao 'product))
+
+(init-product)
 
 
-;; === TESTS ===
+;; === PRODUCT-2-OPTION
 
-;; insert product
-(insert-dao
- (make-instance 'product
-  :name "Тестовый Продукт"
-  :price (random 700)))
+(defclass product-2-option ()
+  ((product-id        :col-type integer         :initarg :product-id      :initform 0         :accessor product-id)
+   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
+  (:metaclass dao-class))
 
-(query (:select '* :from 'product))
-;; (query (:delete-from 'product))
+(defun init-product-2-option ()
+  (query (sql (:drop-table :if-exists 'product-2-option)))
+  (execute (dao-table-definition 'product-2-option))
+  (make-dao 'product-2-option :product-id 1 :option-id 1)
+  (make-dao 'product-2-option :product-id 1 :option-id 2))
 
-;; update product
-(let ((test-product (get-dao 'product 1)))
-  (setf (price test-product) 4500000)
-  (update-dao test-product))
-
-
-;; Prepared Statements
-(defprepared price-of-product
-    (:select 'price :from 'product :where (:= 'name '$1))
-  :single!)
-
-(price-of-product "Тестовый Продукт")
+(init-product-2-option)
 
 
-;; === HASH-TABLES ===
-;; Это пример, который иллюстрирует что будет, если мы будем кешировать в хэш-таблицах продукты
-;; Он довольно синтетический, но дает понимание зачем тут использовать макроc create-product
+;; === CATEGORY ===
 
-(defparameter *h-product* (make-hash-table))
-
-(defmacro create-product (&body params)
-  `(let ((id (incf-product-id)))
-     (values
-      (setf (gethash id *h-product*)
-            (make-dao
-             'product
-             :id id
-             ,@params))
-      id)))
-
-(print (macroexpand-1 '(create-product :name "Еще продукт" :price (random 700))))
-;; (LET ((ID (INCF-PRODUCT-ID)))
-;;   (VALUES
-;;    (SETF (GETHASH ID *H-PRODUCT*)
-;;          (MAKE-DAO 'PRODUCT :ID ID :NAME "Еще продукт" :PRICE (RANDOM 700)))
-;;    ID))
-
-(create-product :name "Еще продукт" :price (random 700))
+(defclass category ()
+  ((id                :col-type integer         :initarg :id              :initform (incf-category-id) :accessor id)
+   (parent-id         :col-type integer         :initarg :parent-id       :initform 0         :accessor parent-id))
+  (:metaclass dao-class)
+  (:keys id))
 
 
-(make-dao 'option
-          :product-id 3
-          :name "опт-name2"
-          :value "опт-value2")
+(defun init-category ()
+  (query (sql (:drop-table :if-exists 'category)))
+  (incrementor category)
+  (execute (dao-table-definition 'category))
+  (make-dao 'category))
 
-(query (:select '* :from 'option))
-
-
-;; (add-option-to-product-by-id 5 "оптнаме2" "оптвалуе2")
+(init-category)
 
 
+;; === CATEGORY-2-OPTION
 
-;; get options
-(query (sql (:select '* :from 'product
-                     :inner-join 'option :on (:= 'product.id 'option.product-id)
-                     :where (:= 'product.id 3))))
+(defclass category-2-option ()
+  ((category-id       :col-type integer         :initarg :category-id     :initform 0         :accessor category-id)
+   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
+  (:metaclass dao-class))
 
+(defun init-category-2-option ()
+  (query (sql (:drop-table :if-exists 'category-2-option)))
+  (execute (dao-table-definition 'category-2-option))
+  (make-dao 'category-2-option :product-id 1 :option-id 1)
+  (make-dao 'category-2-option :product-id 1 :option-id 2))
 
-;; (defun add-option (pr-name &rest opt-list)
-;;   "opt-list должен быть plist-ом"
-;;   (unless (and opt-list
-;;                (evenp (length opt-list)))
-;;     (format t "неправильный opt-list")
-;;     (return-from add-option))
-;;   (let ((prod-list (car (select-dao 'product (:ilike 'name pr-name)))))
-;;     (when (null prod-list)
-;;       (setf prod-list (add-product pr-name)))
-;;     (loop :for i :from 0 :upto (1- (length opt-list)) :by 2
-;;        :do (let* ((op-key (nth i opt-list))
-;;                   (op-val (nth (1+ i) opt-list))
-;;                   (key-list (car (select-dao 'opname (:ilike 'name op-key)))))
-;;              (when (null key-list)
-;;                (setf key-list (add-opname op-key)))
-;;              (make-dao 'option
-;;                        :pr-id (product-id prod-list)
-;;                        :op-id (opnamet-id key-list)
-;;                        :value op-val)))))
+(init-category-2-option)
 
 
-;; (execute (dao-table-definition 'product))
-;; (execute (dao-table-definition 'opname))
-;; (execute (dao-table-definition 'option))
-;; (query "ALTER TABLE product ADD CONSTRAINT uq_p_name UNIQUE (name)")
-;; (query "ALTER TABLE product ADD CHECK (name <> '')")
-;; (query "ALTER TABLE opname ADD CONSTRAINT uq_o_name UNIQUE (name)")
-;; (query "ALTER TABLE opname ADD CHECK (name <> '')")
-;; (query "ALTER TABLE option ADD FOREIGN KEY (pr_id) REFERENCES product(id)")
-;; (query "ALTER TABLE option ADD FOREIGN KEY (op_id) REFERENCES opname(id)")
-;; (add-product "oil")
+;; ;; example data access
+;; (remove-if #'null
+;;            (loop
+;;               :for item
+;;               :in (query (sql (:select '* :from 'option :where (:= 'product-id 1))))
+;;               :collect (destructuring-bind (product-id optname-id optvalue-id)
+;;                            item
+;;                          (query (sql (:select 'id 'lang-id 'val :from 'optname :where (:and
+;;                                                                                        (:= 'id optname-id)
+;;                                                                                        (:= 'lang-id 2))))))))
 
-;; (add-product "масло A")
-;; (add-product "масло B")
-;; (add-opname "объём")
-;; (add-opname "вязкость")
-
-;; (add-option "oil" "объём" "3л." "объём" "4л.")
-;; (add-option "oil" "объём" "3,5л." "объём" "4,5л.")
-;; (add-option "масло U" "вес" "7,5г")
-;; (add-option "масло U" "вес" "7,5г" "gjh")
-;; (add-option "oil" "объём" "3,5л." "объём" "4,5л.")
