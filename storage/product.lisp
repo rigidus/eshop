@@ -46,7 +46,7 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 
-;; === LANG ===
+;;  LANG
 
 (defclass lang ()
   ((id                :col-type integer         :initarg :id             :initform (incf-lang-id) :accessor id)
@@ -64,7 +64,7 @@ alter user <dbuser> with password '<dbpassword>';
 (init-lang)
 
 
-;; === OPTNAME ===
+;;  OPTNAME
 
 (defclass optname ()
   ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
@@ -74,16 +74,12 @@ alter user <dbuser> with password '<dbpassword>';
 
 (defun init-optname ()
   (query (sql (:drop-table :if-exists 'optname)))
-  (execute (dao-table-definition 'optname))
-  (make-dao 'optname :val "имя-опции-1" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
-  (make-dao 'optname :val "option-name-1"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single))
-  (make-dao 'optname :val "имя-опции-2" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
-  (make-dao 'optname :val "option-name-2"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single)))
+  (execute (dao-table-definition 'optname)))
 
 (init-optname)
 
 
-;; === OPTVALUE ===
+;;  OPTVALUE
 
 (defclass optvalue ()
   ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
@@ -94,15 +90,11 @@ alter user <dbuser> with password '<dbpassword>';
 
 (defun init-optvalue ()
   (query (sql (:drop-table :if-exists 'optvalue)))
-  (execute (dao-table-definition 'optvalue))
-  (make-dao 'optvalue :val "значение-опции-1" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
-  (make-dao 'optvalue :val "option-value-1"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single))
-  (make-dao 'optvalue :val "значение-опции-2" :lang-id (query (:select 'id :from 'lang :where (:= 'val "ru")) :single))
-  (make-dao 'optvalue :val "option-value-2"  :lang-id (query (:select 'id :from 'lang :where (:= 'val "en")) :single)))
+  (execute (dao-table-definition 'optvalue)))
 
 (init-optvalue)
 
-;; === OPTION ===
+;;  OPTION
 
 (defclass option ()
   ((id                :col-type integer         :initarg :id             :initform (incf-option-id)  :accessor id)
@@ -114,22 +106,12 @@ alter user <dbuser> with password '<dbpassword>';
 (defun init-option ()
   (query (sql (:drop-table :if-exists 'option)))
   (incrementor option)
-  (execute (dao-table-definition 'option))
-  (let ((option-id (id (make-dao 'option :optype "option"))))
-    (query (:update 'optname :set 'option-id option-id :where (:= 'val "имя-опции-1")))
-    (query (:update 'optname :set 'option-id option-id :where (:= 'val "option-name-1")))
-    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "значение-опции-1")))
-    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "option-value-1"))))
-  (let ((option-id (id (make-dao 'option :optype "option"))))
-    (query (:update 'optname :set 'option-id option-id :where (:= 'val "имя-опции-2")))
-    (query (:update 'optname :set 'option-id option-id :where (:= 'val "option-name-2")))
-    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "значение-опции-2")))
-    (query (:update 'optvalue :set 'option-id option-id :where (:= 'val "option-value-2")))))
+  (execute (dao-table-definition 'option)))
 
 (init-option)
 
 
-;; === PRODUCT ===
+;;  PRODUCT
 
 ;; class product
 (defclass product ()
@@ -143,13 +125,12 @@ alter user <dbuser> with password '<dbpassword>';
 (defun init-product ()
   (query (sql (:drop-table :if-exists 'product)))
   (incrementor product)
-  (execute (dao-table-definition 'product))
-  (make-dao 'product))
+  (execute (dao-table-definition 'product)))
 
 (init-product)
 
 
-;; === PRODUCT-2-OPTION
+;;  PRODUCT-2-OPTION
 
 (defclass product-2-option ()
   ((product-id        :col-type integer         :initarg :product-id      :initform 0         :accessor product-id)
@@ -158,18 +139,17 @@ alter user <dbuser> with password '<dbpassword>';
 
 (defun init-product-2-option ()
   (query (sql (:drop-table :if-exists 'product-2-option)))
-  (execute (dao-table-definition 'product-2-option))
-  (make-dao 'product-2-option :product-id 1 :option-id 1)
-  (make-dao 'product-2-option :product-id 1 :option-id 2))
+  (execute (dao-table-definition 'product-2-option)))
 
 (init-product-2-option)
 
 
-;; === CATEGORY ===
+;;  CATEGORY
 
 (defclass category ()
   ((id                :col-type integer         :initarg :id              :initform (incf-category-id) :accessor id)
-   (parent-id         :col-type integer         :initarg :parent-id       :initform 0         :accessor parent-id))
+   (parent-id         :col-type integer         :initarg :parent-id       :initform 0         :accessor parent-id)
+   (shop-id           :col-type integer         :initarg :shop-id         :initform 0         :accessor shop-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -177,13 +157,12 @@ alter user <dbuser> with password '<dbpassword>';
 (defun init-category ()
   (query (sql (:drop-table :if-exists 'category)))
   (incrementor category)
-  (execute (dao-table-definition 'category))
-  (make-dao 'category))
+  (execute (dao-table-definition 'category)))
 
 (init-category)
 
 
-;; === CATEGORY-2-OPTION
+;;  CATEGORY-2-OPTION
 
 (defclass category-2-option ()
   ((category-id       :col-type integer         :initarg :category-id     :initform 0         :accessor category-id)
@@ -192,11 +171,133 @@ alter user <dbuser> with password '<dbpassword>';
 
 (defun init-category-2-option ()
   (query (sql (:drop-table :if-exists 'category-2-option)))
-  (execute (dao-table-definition 'category-2-option))
-  (make-dao 'category-2-option :product-id 1 :option-id 1)
-  (make-dao 'category-2-option :product-id 1 :option-id 2))
+  (execute (dao-table-definition 'category-2-option)))
 
 (init-category-2-option)
+
+
+;;  SHOP
+
+(defclass shop ()
+  ((id                :col-type integer         :initarg :id              :initform (incf-shop-id) :accessor id))
+  (:metaclass dao-class)
+  (:keys id))
+
+(defun init-shop ()
+  (query (sql (:drop-table :if-exists 'shop)))
+  (incrementor shop)
+  (execute (dao-table-definition 'shop)))
+
+(init-shop)
+
+;;  SHOP-2-OPTION
+
+(defclass shop-2-option ()
+  ((shop-id           :col-type integer         :initarg :shop-id         :initform 0         :accessor shop-id)
+   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
+  (:metaclass dao-class))
+
+(defun init-shop-2-option ()
+  (query (sql (:drop-table :if-exists 'shop-2-option)))
+  (execute (dao-table-definition 'shop-2-option)))
+
+(init-shop-2-option)
+
+
+;;  SHOP-2-CATEGORY
+
+(defclass shop-2-category ()
+  ((shop-id             :col-type integer         :initarg :shop-id           :initform 0         :accessor shop-id)
+   (category-id         :col-type integer         :initarg :category-id       :initform 0         :accessor category-id))
+  (:metaclass dao-class))
+
+(defun init-shop-2-category ()
+  (query (sql (:drop-table :if-exists 'shop-2-category)))
+  (execute (dao-table-definition 'shop-2-category)))
+
+(init-shop-2-category)
+
+
+;;  API : SHOP
+
+(defun create-shop ()
+  (id (make-dao 'shop)))
+
+(defun shop-add-option (shop-id lang name &optional value)
+  (let ((shop        (get-dao   'shop shop-id))
+        (lang-id     (query     (:select 'id :from 'lang :where (:= 'val lang)) :single)))
+    (let ((option-id (id (make-dao  'option :optype "shop-option"))))
+      (make-dao 'optname
+                :option-id option-id
+                :lang-id lang-id
+                :val name)
+      (when value
+        (make-dao 'optvalue
+                  :option-id option-id
+                  :lang-id lang-id
+                  :val value))
+      t)))
+
+
+;; API : CATEGORY
+
+(defun create-category ()
+  (id (make-dao 'category)))
+
+(defun category-add-option (category-id lang name &optional value)
+  (let ((category    (get-dao   'category category-id))
+        (lang-id     (query     (:select 'id :from 'lang :where (:= 'val lang)) :single)))
+    (let ((option-id (id (make-dao  'option :optype "category-option"))))
+      (make-dao 'optname
+                :option-id option-id
+                :lang-id lang-id
+                :val name)
+      (when value
+        (make-dao 'optvalue
+                  :option-id option-id
+                  :lang-id lang-id
+                  :val value))
+      t)))
+
+(defun addlink-category-2-shop (category-id shop-id)
+  (make-dao 'shop-2-category
+            :shop-id shop-id
+            :category-id category-id)
+  t)
+
+;;  API : PRODUCT
+
+(defun create-product (category-id)
+  (id (make-dao 'product :category-id category-id)))
+
+(defun product-add-option (product-id lang name &optional value)
+  (let ((product    (get-dao   'product product-id))
+        (lang-id     (query     (:select 'id :from 'lang :where (:= 'val lang)) :single)))
+    (let ((option-id (id (make-dao  'option :optype "product-option"))))
+      (make-dao 'optname
+                :option-id option-id
+                :lang-id lang-id
+                :val name)
+      (when value
+        (make-dao 'optvalue
+                  :option-id option-id
+                  :lang-id lang-id
+                  :val value))
+      t)))
+
+
+(let ((shop-id (create-shop)))
+  (shop-add-option shop-id "ru" "Имя организации" "Макарена")
+  (let ((category-id (create-category)))
+    (category-add-option category-id "ru" "Имя категории" "Холодные закуски")
+    (addlink-category-2-shop shop-id category-id)
+    (let ((product-id (create-product category-id)))
+      (product-add-option product-id "ru" "Имя продукта" "Бутерброд"))))
+
+
+
+
+
 
 
 ;; ;; example data access
