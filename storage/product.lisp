@@ -25,6 +25,35 @@ alter user <dbuser> with password '<dbpassword>';
 
 (connect-toplevel "restodb" "resto" "resto1111" "localhost")
 
+;; produce (and init if need) linktable object
+(defmacro def~daoclass-linktable (src dst &optional re-init)
+  (flet ((get-fld-str (fld)
+           (let* ((fld-str      (format nil "~A" (symbol-name fld)))
+                  (fld-id-symbol  (intern (format nil "~A-ID" fld-str)))
+                  (fld-id-keyword   (intern (format nil "~A-ID" fld-str) :keyword)))
+             `(,fld-id-symbol :col-type integer :initarg ,fld-id-keyword :initform 0 :accessor ,fld-id-symbol))))
+    (let* ((class-name-symbol (intern (format nil "~A-2-~A" (symbol-name src) (symbol-name dst))))
+           (class-definition  `(defclass ,class-name-symbol ()
+                                 (,(get-fld-str src)
+                                  ,(get-fld-str dst))
+                                 (:metaclass dao-class)))
+           (re-initialization `(progn
+                                 ,class-definition
+                                 (query (sql (:drop-table :if-exists ',class-name-symbol)))
+                                 (execute (dao-table-definition ',class-name-symbol)))))
+      (if (not re-init) class-definition re-initialization))))
+
+;; linktable test
+(print (macroexpand-1 '(def~daoclass-linktable shop option t)))
+;; (PROGN
+;;   (DEFCLASS SHOP-2-OPTION NIL
+;;     ((SHOP-ID   :COL-TYPE INTEGER :INITARG :SHOP-ID   :INITFORM 0  :ACCESSOR SHOP-ID)
+;;      (OPTION-ID :COL-TYPE INTEGER :INITARG :OPTION-ID :INITFORM 0  :ACCESSOR OPTION-ID))
+;;     (:METACLASS DAO-CLASS))
+;;   (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'SHOP-2-OPTION)))
+;;   (EXECUTE (DAO-TABLE-DEFINITION 'SHOP-2-OPTION)))
+
+
 ;; produce incrementor closure
 (defmacro incrementor (name)
   `(let ((,(intern (format nil "INC-~A-ID" (symbol-name name))) 0))
@@ -43,7 +72,6 @@ alter user <dbuser> with password '<dbpassword>';
 ;;       (INCF INC-PRODUCT-ID))
 ;;     (DEFUN INIT-PRODUCT-ID (INIT-VALUE)
 ;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
-
 
 
 ;;  LANG
@@ -132,16 +160,8 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  PRODUCT-2-OPTION
 
-(defclass product-2-option ()
-  ((product-id        :col-type integer         :initarg :product-id      :initform 0         :accessor product-id)
-   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
-  (:metaclass dao-class))
+(def~daoclass-linktable product option t)
 
-(defun init-product-2-option ()
-  (query (sql (:drop-table :if-exists 'product-2-option)))
-  (execute (dao-table-definition 'product-2-option)))
-
-(init-product-2-option)
 
 
 ;;  CATEGORY
@@ -164,16 +184,7 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  CATEGORY-2-OPTION
 
-(defclass category-2-option ()
-  ((category-id       :col-type integer         :initarg :category-id     :initform 0         :accessor category-id)
-   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
-  (:metaclass dao-class))
-
-(defun init-category-2-option ()
-  (query (sql (:drop-table :if-exists 'category-2-option)))
-  (execute (dao-table-definition 'category-2-option)))
-
-(init-category-2-option)
+(def~daoclass-linktable category option t)
 
 
 ;;  SHOP
@@ -192,30 +203,12 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  SHOP-2-OPTION
 
-(defclass shop-2-option ()
-  ((shop-id           :col-type integer         :initarg :shop-id         :initform 0         :accessor shop-id)
-   (option-id         :col-type integer         :initarg :option-id       :initform 0         :accessor option-id))
-  (:metaclass dao-class))
-
-(defun init-shop-2-option ()
-  (query (sql (:drop-table :if-exists 'shop-2-option)))
-  (execute (dao-table-definition 'shop-2-option)))
-
-(init-shop-2-option)
+(def~daoclass-linktable shop option t)
 
 
 ;;  SHOP-2-CATEGORY
 
-(defclass shop-2-category ()
-  ((shop-id             :col-type integer         :initarg :shop-id           :initform 0         :accessor shop-id)
-   (category-id         :col-type integer         :initarg :category-id       :initform 0         :accessor category-id))
-  (:metaclass dao-class))
-
-(defun init-shop-2-category ()
-  (query (sql (:drop-table :if-exists 'shop-2-category)))
-  (execute (dao-table-definition 'shop-2-category)))
-
-(init-shop-2-category)
+(def~daoclass-linktable shop category t)
 
 
 ;;  API : SHOP
