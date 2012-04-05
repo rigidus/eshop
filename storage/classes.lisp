@@ -41,12 +41,14 @@ characters in string S to STREAM."
 
 
 
+;; object phone is part of object resto and other objects
 (defclass phone ()
   ((main              :initarg :main            :initform ""        :accessor main)
    (delivery          :initarg :delivery        :initform ""        :accessor delivery)
    (banquet           :initarg :banquet         :initform ""        :accessor banquet)))
 
 
+;; object address is part of object resto
 (defclass address ()
   ((latitude          :initarg :latitude        :initform 0         :accessor latitude)
    (longitude         :initarg :longitude       :initform 0         :accessor longitude)
@@ -58,11 +60,107 @@ characters in string S to STREAM."
    (building          :initarg :building        :initform ""        :accessor building)))
 
 
+;; object estimate is part of object resto
 (defclass estimate ()
   ((rating            :initarg :rating          :initform ""        :accessor rating)
    (rating_count      :initarg :rating_count    :initform ""        :accessor rating_count)
    (comment_count     :initarg :comment_count   :initform ""        :accessor comment_count)))
 
 
+;; object capacity is part of object resto
+(defclass capacity ()
+  ((indoor            :initarg :indoor          :initform ""        :accessor indoor)
+   (outdoor           :initarg :outdoor         :initform ""        :accessor outdoor)))
 
+
+;; optional
+(defclass optional ()
+  ((kitchen           :initarg :kitchen         :initform nil       :accessor kitchen)
+   (service           :initarg :service         :initform nil       :accessor service)
+   (additionally      :initarg :additionally    :initform nil       :accessor additionally)
+   (children          :initarg :children        :initform nil       :accessor children)
+   (music             :initarg :music           :initform nil       :accessor music)
+   (view              :initarg :view            :initform nil       :accessor view)))
+
+
+;; resto
+(defclass resto ()
+  ((id                :initarg :id              :initform 0         :accessor id)
+   (name              :initarg :name            :initform ""        :accessor name)
+   (descr             :initarg :descr           :initform ""        :accessor descr)
+   (opening_date      :initarg :opening_date    :initform ""        :accessor opening_date)
+   (price             :initarg :price           :initform ""        :accessor price)
+   (photo             :initarg :photo           :initform ""        :accessor photo)
+   (site              :initarg :site            :initform ""        :accessor site)
+   (phone             :initarg :phone           :initform ""        :accessor phone)
+   (address           :initarg :address         :initform ""        :accessor address)
+   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
+   (capacity          :initarg :capacity        :initform ""        :accessor capacity)
+   (worktime          :initarg :worktime        :initform ""        :accessor worktime)
+   (optional          :initarg :optional        :initform ""        :accessor optional)))
+
+
+(defclass resto~shortlist ()
+  ((id                :initarg :id              :initform 0         :accessor id)
+   (name              :initarg :name            :initform ""        :accessor name)
+   (price             :initarg :price           :initform ""        :accessor price)
+   (photo             :initarg :photo           :initform ""        :accessor photo)
+   (address           :initarg :address         :initform ""        :accessor address)
+   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
+   ))
+
+
+(defclass resto~longview ()
+  ((id                :initarg :id              :initform 0         :accessor id)
+   (name              :initarg :name            :initform ""        :accessor name)
+   (descr             :initarg :descr           :initform ""        :accessor descr)
+   (opening_date      :initarg :opening_date    :initform ""        :accessor opening_date)
+   (price             :initarg :price           :initform ""        :accessor price)
+   (photo             :initarg :photo           :initform ""        :accessor photo)
+   (site              :initarg :site            :initform ""        :accessor site)
+   (phone             :initarg :phone           :initform ""        :accessor phone)
+   (address           :initarg :address         :initform ""        :accessor address)
+   (estimate          :initarg :estimate        :initform ""        :accessor estimate)
+   (capacity          :initarg :capacity        :initform ""        :accessor capacity)
+   (worktime          :initarg :worktime        :initform ""        :accessor worktime)
+   (optional          :initarg :optional        :initform ""        :accessor optional)))
+
+
+
+
+(defclass product ()
+  ((id                :col-type integer         :initarg :id              :initform 0         :accessor id)
+   (name              :col-type string          :initarg :name            :initform ""        :accessor name)
+   (price             :col-type integer         :initarg :price           :initform ""        :accessor price)
+   (opts                                        :initarg :opts            :initform ""        :accessor opts))
+  (:metaclass dao-class)
+  (:keys id))
+
+
+(defclass optname ()
+  ((name              :initarg :name            :initform ""        :accessor name)
+   (value             :initarg :value           :initform ""        :accessor value)
+   (optype            :initarg :optype          :initform nil       :accessor optype)
+   (optgrp            :initarg :optgrp          :initform ""        :accessor optgrp))
+  (:metaclass dao-class)
+  (:keys name value optype optgrp))
+
+
+(defclass optval ()
+  ((product-id        :initarg :product-id      :initform ""        :accessor product-id)
+   (option-id         :initarg :option-id       :initform ""        :accessor option-id)
+   (value             :initarg :value           :initform ""        :accessor value))
+  (:metaclass dao-class)
+  (:keys product-id option-id value))
+
+
+
+
+
+;; map on slots test
+
+;; (mapcar #'(lambda (x)
+;;             (print (slot-value *tmp*
+;;                                (slot-definition-name x))))
+;;         (compute-slots (find-class 'address)))
 
