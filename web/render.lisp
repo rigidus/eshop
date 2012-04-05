@@ -10,14 +10,7 @@
 (defclass eshop.web.render () ())
 (defclass eshop.web.css () ())
 
-(compile-cl-templates 
- (mapcar 'asdf:component-pathname
-         (asdf:module-components
-          (asdf:find-component (asdf:find-system '#:eshop.web) 'tpl))))
-
 (setf *default-render-method* (make-instance 'eshop.web.render))
-(setf +css-render-method+ (make-instance 'eshop.web.css))
-(setf *default-design* '#:eshop.web.design.default )
 
 (defmethod restas:render-object
     ((render-method eshop.web.render) (data list))

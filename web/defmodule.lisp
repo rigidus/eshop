@@ -16,3 +16,10 @@
 
 (defun path (relative)
   (merge-pathnames relative *basedir*))
+
+(compile-cl-templates 
+ (mapcar 'asdf:component-pathname
+         (asdf:module-components
+          (asdf:find-component (asdf:find-system '#:eshop.web) 'tpl))))
+
+(defparameter *default-design* '#:eshop.web.design.default )
