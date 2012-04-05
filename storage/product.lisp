@@ -168,9 +168,6 @@ alter user <dbuser> with password '<dbpassword>';
 (db-init)
 
 
-
-(query (sql (:select '* :from 'product :where (:= 'id 1))))
-
 (remove-if #'null
            (loop
               :for item
