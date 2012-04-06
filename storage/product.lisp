@@ -143,7 +143,9 @@ alter user <dbuser> with password '<dbpassword>';
                         :when (let ((name   (query (:select 'val :from 'optname  :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single))
                                     (value  (query (:select 'val :from 'optvalue :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single)))
                                 (if name    (cons name value) nil))
-                        :collect it))))))))
+                        :collect it)))
+                 (defmethod get-option ((dao-obj ,name) lang name)
+                   (cdr (assoc name (get-opts dao-obj lang) :test #'equal))))))))
 
 
 ;; entity test
@@ -189,17 +191,19 @@ alter user <dbuser> with password '<dbpassword>';
 ;;            :WHEN (LET ((NAME   (QUERY (:SELECT 'VAL :FROM 'OPTNAME  :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE))
 ;;                        (VALUE  (QUERY (:SELECT 'VAL :FROM 'OPTVALUE :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE)))
 ;;                    (IF NAME (CONS NAME VALUE) NIL))
-;;            :COLLECT IT)))))
+;;            :COLLECT IT)))
+;;     (DEFMETHOD GET-OPTION ((DAO-OBJ PRODUCT) LANG NAME)
+;;       (CDR (ASSOC NAME (GET-OPTS DAO-OBJ LANG) :TEST #'EQUAL)))))
 
 
-;; (defparameter *x* (make-dao 'product))
-;; (id *x*)
-;; (add-option *x* "ru" "qwe" "asd")
-;; (add-option *x* "ru" "qwe123" "asd345")
-;; (add-option *x* "en" "qwe123asd" "asd345qwe")
-;; (get-opts *x* "ru")
-;; (get-opts *x* "en")
-
+(defparameter *x* (make-dao 'product))
+(id *x*)
+(add-option *x* "ru" "qwe" "asd")
+(add-option *x* "ru" "qwe123" "asd345")
+(add-option *x* "en" "qwe123asd" "asd345qwe")
+(get-opts *x* "en")
+(get-opts *x* "ru")
+(get-option *x* "ru" "qwe")
 
 ;;  OPTNAME
 
