@@ -132,7 +132,19 @@ alter user <dbuser> with password '<dbpassword>';
                        (make-dao 'optvalue :option-id option-id :lang-id lang-id :val value))
                      (query (:insert-into ',(intern (format nil "~A-2-OPTION" (symbol-name name))) :set
                                           ',(intern (format nil "~A-ID" name)) (id dao-obj)
-                                          'option-id option-id)))))))))
+                                          'option-id option-id))))
+                 (defmethod get-opts ((dao-obj ,name) lang)
+                   (let* ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
+                          (option-ids (mapcar #'car
+                                              (query (:select 'option.id :from 'product-2-option
+                                                              :inner-join 'option :on (:= 'product-2-option.option-id 'option.id)
+                                                              :where (:= 'product-id (id dao-obj)))))))
+                     (loop :for item :in option-ids
+                        :when (let ((name   (query (:select 'val :from 'optname  :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single))
+                                    (value  (query (:select 'val :from 'optvalue :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single)))
+                                (if name    (cons name value) nil))
+                        :collect it))))))))
+
 
 ;; entity test
 (print (macroexpand-1 '(def~daoclass-entity product ()
@@ -143,7 +155,6 @@ alter user <dbuser> with password '<dbpassword>';
                         (:incf id)
                         (:re-init t)
                         (:re-link t))))
-
 
 ;; (PROGN
 ;;   (INCREMENTOR PRODUCT ID)
@@ -166,8 +177,28 @@ alter user <dbuser> with password '<dbpassword>';
 ;;           (MAKE-DAO 'OPTVALUE :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL VALUE))
 ;;         (QUERY (:INSERT-INTO 'PRODUCT-2-OPTION :SET
 ;;                              'PRODUCT-ID (ID DAO-OBJ)
-;;                              'OPTION-ID OPTION-ID))))))
+;;                              'OPTION-ID OPTION-ID))))
+;;     (DEFMETHOD GET-OPTS ((DAO-OBJ PRODUCT) LANG)
+;;       (LET* ((LANG-ID     (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
+;;              (OPTION-IDS  (MAPCAR #'CAR
+;;                                   (QUERY
+;;                                    (:SELECT 'OPTION.ID :FROM 'PRODUCT-2-OPTION
+;;                                             :INNER-JOIN 'OPTION :ON (:= 'PRODUCT-2-OPTION.OPTION-ID 'OPTION.ID)
+;;                                             :WHERE (:= 'PRODUCT-ID (ID DAO-OBJ)))))))
+;;         (LOOP :FOR ITEM :IN OPTION-IDS
+;;            :WHEN (LET ((NAME   (QUERY (:SELECT 'VAL :FROM 'OPTNAME  :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE))
+;;                        (VALUE  (QUERY (:SELECT 'VAL :FROM 'OPTVALUE :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE)))
+;;                    (IF NAME (CONS NAME VALUE) NIL))
+;;            :COLLECT IT)))))
 
+
+;; (defparameter *x* (make-dao 'product))
+;; (id *x*)
+;; (add-option *x* "ru" "qwe" "asd")
+;; (add-option *x* "ru" "qwe123" "asd345")
+;; (add-option *x* "en" "qwe123asd" "asd345qwe")
+;; (get-opts *x* "ru")
+;; (get-opts *x* "en")
 
 
 ;;  OPTNAME
