@@ -25,7 +25,7 @@ alter user <dbuser> with password '<dbpassword>';
 
 (connect-toplevel "restodb" "resto" "resto1111" "localhost")
 
-;; produce (and init if need) linktable object
+;; produce (and re-init storage table if need) linktable object
 (defmacro def~daoclass-linktable (src dst &optional re-init)
   (flet ((get-fld-str (fld)
            (let* ((fld-str      (format nil "~A" (symbol-name fld)))
@@ -55,17 +55,16 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 ;; produce incrementor closure
-(defmacro incrementor (name)
-  `(let ((,(intern (format nil "INC-~A-ID" (symbol-name name))) 0))
+(defmacro incrementor (name fld)
+  `(let ((,(intern (format nil "INC-~A-~A" (symbol-name name) (symbol-name fld))) 0))
      (list
-      (defun ,(intern (format nil "INCF-~A-ID" (symbol-name name) ())) ()
-        (incf ,(intern (format nil "INC-~A-ID" (symbol-name name)))))
-      (defun ,(intern (format nil "INIT-~A-ID" (symbol-name name) ())) (init-value)
-        (setf ,(intern (format nil "INC-~A-ID" (symbol-name name))) init-value)))))
-
+      (defun ,(intern (format nil "INCF-~A-~A" (symbol-name name) (symbol-name fld)())) ()
+        (incf ,(intern (format nil "INC-~A-~A" (symbol-name name) (symbol-name fld)))))
+      (defun ,(intern (format nil "INIT-~A-~A" (symbol-name name) (symbol-name fld) ())) (init-value)
+        (setf ,(intern (format nil "INC-~A-~A" (symbol-name name) (symbol-name fld))) init-value)))))
 
 ;; incrementor test
-(print (macroexpand-1 '(incrementor product)))
+(print (macroexpand-1 '(incrementor product id)))
 ;; (LET ((INC-PRODUCT-ID))
 ;;   (LIST
 ;;     (DEFUN INCF-PRODUCT-ID ()
@@ -74,88 +73,123 @@ alter user <dbuser> with password '<dbpassword>';
 ;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
 
 
+
+;; produce (and re-init storage table if need) entity object
+(defmacro def~daoclass-entity (name direct-superclasses direct-slots &rest options)
+  (let ((incf)
+        (re-init)
+        (new-options)
+        (fields-definition  (loop :for slot :in direct-slots :collect
+                               (let* ((slot-symbol (car slot))
+                                      (slot-plist (cdr slot))
+                                      (slot-result))
+                                 (aif (getf slot-plist :writer)    (setf (getf slot-result :writer) it))
+                                 (aif (getf slot-plist :reader)    (setf (getf slot-result :reader) it))
+                                 (aif (getf slot-plist :accessor)
+                                      (setf (getf slot-result :accessor) it)
+                                      ;; else
+                                      (unless (or (getf slot-plist :writer) (getf slot-plist :reader))
+                                        (setf (getf slot-result :accessor) slot-symbol)))
+                                 (aif (getf slot-plist :initform)  (setf (getf slot-result :initform) it))
+                                 (aif (getf slot-plist :initarg)
+                                      (setf (getf slot-result :initarg) it)
+                                      (setf (getf slot-result :initarg) (intern (symbol-name slot-symbol) :keyword)))
+                                 (aif (getf slot-plist :column)    (setf (getf slot-result :column) it))
+                                 (aif (getf slot-plist :col-type)  (setf (getf slot-result :col-type) it))
+                                 `(,slot-symbol ,@slot-result)))))
+    (loop :for item :in options :do
+       (case (car item)
+         (:incf (setf incf (cdr item)))
+         (:re-init (setf re-init (cdr item)))
+         (otherwise (push item new-options))))
+    `(progn
+       ,@(loop :for item :in incf :collect `(incrementor ,name ,item))
+       (defclass ,name ,direct-superclasses ,fields-definition ,@(list* '(:metaclass dao-class) (reverse new-options)))
+       ,(when re-init
+              `(progn
+                 (query (sql (:drop-table :if-exists ',name)))
+                 (execute (dao-table-definition ',name)))))))
+
+;; entity test
+(print (macroexpand-1 '(def~daoclass-entity product ()
+                        ((id                :col-type integer         :initform (incf-product-id))
+                         (category-id       :col-type integer         :initform 0)
+                         (options                                     :initform ""))
+                        (:keys id)
+                        (:incf id)
+                        (:re-init t))))
+;; (PROGN
+;;   (INCREMENTOR PRODUCT ID)
+;;   (DEFCLASS PRODUCT NIL
+;;     ((ID          :COL-TYPE INTEGER :INITARG :ID          :INITFORM (INCF-PRODUCT-ID) :ACCESSOR ID)
+;;      (CATEGORY-ID :COL-TYPE INTEGER :INITARG :CATEGORY-ID :INITFORM 0                 :ACCESSOR CATEGORY-ID)
+;;      (OPTIONS                       :INITARG :OPTIONS     :INITFORM ""                :ACCESSOR OPTIONS))
+;;     (:METACLASS DAO-CLASS)
+;;     (:KEYS ID))
+;;   (PROGN
+;;     (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'PRODUCT)))
+;;     (EXECUTE (DAO-TABLE-DEFINITION 'PRODUCT))))
+
+
+
+
 ;;  LANG
 
-(defclass lang ()
-  ((id                :col-type integer         :initarg :id             :initform (incf-lang-id) :accessor id)
-   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
-  (:metaclass dao-class)
-  (:keys id))
+(def~daoclass-entity
+    lang ()
+    ((id                :col-type integer         :initform (incf-lang-id))
+     (val               :col-type string          :initform ""))
+    (:keys id)
+    (:incf id)
+    (:re-init t))
 
-(defun init-lang ()
-  (query (sql (:drop-table :if-exists 'lang)))
-  (incrementor lang)
-  (execute (dao-table-definition 'lang))
-  (make-dao 'lang :val "ru")
-  (make-dao 'lang :val "en"))
-
-(init-lang)
+(make-dao 'lang :val "ru")
+(make-dao 'lang :val "en")
 
 
 ;;  OPTNAME
 
-(defclass optname ()
-  ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
-   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
-   (val               :col-type string          :initarg :val            :initform ""         :accessor val))
-  (:metaclass dao-class))
-
-(defun init-optname ()
-  (query (sql (:drop-table :if-exists 'optname)))
-  (execute (dao-table-definition 'optname)))
-
-(init-optname)
+(def~daoclass-entity
+    optname ()
+    ((option-id         :col-type integer         :initform 0)
+     (lang-id           :col-type integer         :initform 0)
+     (val               :col-type string          :initform ""))
+    (:re-init t))
 
 
 ;;  OPTVALUE
 
-(defclass optvalue ()
-  ((option-id         :col-type integer         :initarg :option-id      :initform 0          :accessor option-id)
-   (lang-id           :col-type integer         :initarg :lang-id        :initform 0          :accessor lang-id)
-   (val               :col-type string          :initarg :val            :initform ""         :accessor val)
-   (product-id        :col-type integer         :initarg :product-id     :initform 0          :accessor product-id))
-  (:metaclass dao-class))
+(def~daoclass-entity
+    optvalue ()
+    ((option-id         :col-type integer         :initform 0)
+     (lang-id           :col-type integer         :initform 0)
+     (val               :col-type string          :initform "")
+     (product-id        :col-type integer         :initform 0))
+    (:re-init t))
 
-(defun init-optvalue ()
-  (query (sql (:drop-table :if-exists 'optvalue)))
-  (execute (dao-table-definition 'optvalue)))
-
-(init-optvalue)
 
 ;;  OPTION
 
-(defclass option ()
-  ((id                :col-type integer         :initarg :id             :initform (incf-option-id)  :accessor id)
-   (parent-id         :col-type integer         :initarg :parent-id      :initform 0          :accessor parent-id)
-   (optype            :col-type string          :initarg :optype         :initform ""         :accessor optype))
-  (:metaclass dao-class)
-  (:keys id))
-
-(defun init-option ()
-  (query (sql (:drop-table :if-exists 'option)))
-  (incrementor option)
-  (execute (dao-table-definition 'option)))
-
-(init-option)
+(def~daoclass-entity
+    option ()
+    ((id                :col-type integer         :initform (incf-option-id))
+     (parent-id         :col-type integer         :initform 0)
+     (optype            :col-type string          :initform ""))
+    (:keys id)
+    (:incf id)
+    (:re-init t))
 
 
 ;;  PRODUCT
 
-;; class product
-(defclass product ()
-  ((id                :col-type integer         :initarg :id              :initform (incf-product-id) :accessor id)
-   (category-id       :col-type integer         :initarg :category-id     :initform 0         :accessor category-id)
-   (options                                     :initarg :opions          :initform ""        :accessor options))
-  (:metaclass dao-class)
-  (:keys id))
-
-
-(defun init-product ()
-  (query (sql (:drop-table :if-exists 'product)))
-  (incrementor product)
-  (execute (dao-table-definition 'product)))
-
-(init-product)
+(def~daoclass-entity
+    product ()
+    ((id                :col-type integer         :initform (incf-product-id))
+     (category-id       :col-type integer         :initform 0)
+     (options                                     :initform ""))
+    (:keys id)
+    (:incf id)
+    (:re-init t))
 
 
 ;;  PRODUCT-2-OPTION
@@ -163,23 +197,16 @@ alter user <dbuser> with password '<dbpassword>';
 (def~daoclass-linktable product option t)
 
 
-
 ;;  CATEGORY
 
-(defclass category ()
-  ((id                :col-type integer         :initarg :id              :initform (incf-category-id) :accessor id)
-   (parent-id         :col-type integer         :initarg :parent-id       :initform 0         :accessor parent-id)
-   (shop-id           :col-type integer         :initarg :shop-id         :initform 0         :accessor shop-id))
-  (:metaclass dao-class)
-  (:keys id))
-
-
-(defun init-category ()
-  (query (sql (:drop-table :if-exists 'category)))
-  (incrementor category)
-  (execute (dao-table-definition 'category)))
-
-(init-category)
+(def~daoclass-entity
+    category ()
+    ((id                :col-type integer         :initform (incf-category-id))
+     (parent-id         :col-type integer         :initform 0)
+     (shop-id           :col-type integer         :initform 0))
+    (:keys id)
+    (:incf id)
+    (:re-init t))
 
 
 ;;  CATEGORY-2-OPTION
@@ -189,17 +216,12 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  SHOP
 
-(defclass shop ()
-  ((id                :col-type integer         :initarg :id              :initform (incf-shop-id) :accessor id))
-  (:metaclass dao-class)
-  (:keys id))
-
-(defun init-shop ()
-  (query (sql (:drop-table :if-exists 'shop)))
-  (incrementor shop)
-  (execute (dao-table-definition 'shop)))
-
-(init-shop)
+(def~daoclass-entity
+    shop ()
+    ((id                :col-type integer         :initform (incf-shop-id)))
+    (:keys id)
+    (:incf id)
+    (:re-init t))
 
 ;;  SHOP-2-OPTION
 
@@ -209,6 +231,13 @@ alter user <dbuser> with password '<dbpassword>';
 ;;  SHOP-2-CATEGORY
 
 (def~daoclass-linktable shop category t)
+
+
+
+
+
+
+
 
 
 ;;  API : SHOP
@@ -286,11 +315,6 @@ alter user <dbuser> with password '<dbpassword>';
     (addlink-category-2-shop shop-id category-id)
     (let ((product-id (create-product category-id)))
       (product-add-option product-id "ru" "Имя продукта" "Бутерброд"))))
-
-
-
-
-
 
 
 ;; ;; example data access
