@@ -22,8 +22,18 @@ alter user <dbuser> with password '<dbpassword>';
 
 |#
 
+(defparameter *db-name* "restodb")
+(defparameter *db-user* "resto")
+(defparameter *db-pass* "resto1111")
+(defparameter *db-serv* "localhost")
+(defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
+(connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
 
-(connect-toplevel "restodb" "resto" "resto1111" "localhost")
+(with-connection *db-spec*
+  (query (:select '* :from 'product)))
+
+
+
 
 ;; produce (and re-init storage table if need) linktable object
 (defmacro def~daoclass-linktable (src dst &optional re-init)
@@ -78,6 +88,7 @@ alter user <dbuser> with password '<dbpassword>';
 (defmacro def~daoclass-entity (name direct-superclasses direct-slots &rest options)
   (let ((incf)
         (re-init)
+        (re-link)
         (new-options)
         (fields-definition  (loop :for slot :in direct-slots :collect
                                (let* ((slot-symbol (car slot))
@@ -99,8 +110,9 @@ alter user <dbuser> with password '<dbpassword>';
                                  `(,slot-symbol ,@slot-result)))))
     (loop :for item :in options :do
        (case (car item)
-         (:incf (setf incf (cdr item)))
-         (:re-init (setf re-init (cdr item)))
+         (:incf     (setf incf (cdr item)))
+         (:re-init  (setf re-init t))
+         (:re-link  (setf re-link t))
          (otherwise (push item new-options))))
     `(progn
        ,@(loop :for item :in incf :collect `(incrementor ,name ,item))
@@ -108,7 +120,19 @@ alter user <dbuser> with password '<dbpassword>';
        ,(when re-init
               `(progn
                  (query (sql (:drop-table :if-exists ',name)))
-                 (execute (dao-table-definition ',name)))))))
+                 (execute (dao-table-definition ',name))))
+       ,(when re-link
+              `(progn
+                 (def~daoclass-linktable ,name option ,re-init)
+                 (defmethod add-option ((dao-obj ,name) lang name &optional (value t))
+                   (let ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
+                         (option-id  (id (make-dao 'option :optype (symbol-name ',name)))))
+                     (make-dao   'optname  :option-id option-id :lang-id lang-id :val name)
+                     (when value
+                       (make-dao 'optvalue :option-id option-id :lang-id lang-id :val value))
+                     (query (:insert-into ',(intern (format nil "~A-2-OPTION" (symbol-name name))) :set
+                                          ',(intern (format nil "~A-ID" name)) (id dao-obj)
+                                          'option-id option-id)))))))))
 
 ;; entity test
 (print (macroexpand-1 '(def~daoclass-entity product ()
@@ -117,7 +141,10 @@ alter user <dbuser> with password '<dbpassword>';
                          (options                                     :initform ""))
                         (:keys id)
                         (:incf id)
-                        (:re-init t))))
+                        (:re-init t)
+                        (:re-link t))))
+
+
 ;; (PROGN
 ;;   (INCREMENTOR PRODUCT ID)
 ;;   (DEFCLASS PRODUCT NIL
@@ -128,22 +155,19 @@ alter user <dbuser> with password '<dbpassword>';
 ;;     (:KEYS ID))
 ;;   (PROGN
 ;;     (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'PRODUCT)))
-;;     (EXECUTE (DAO-TABLE-DEFINITION 'PRODUCT))))
+;;     (EXECUTE (DAO-TABLE-DEFINITION 'PRODUCT)))
+;;   (PROGN
+;;     (DEF~DAOCLASS-LINKTABLE PRODUCT OPTION T)
+;;     (DEFMETHOD ADD-OPTION ((DAO-OBJ PRODUCT) LANG NAME &OPTIONAL (VALUE T))
+;;       (LET ((LANG-ID    (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
+;;             (OPTION-ID  (ID (MAKE-DAO 'OPTION :OPTYPE (SYMBOL-NAME 'PRODUCT)))))
+;;         (MAKE-DAO 'OPTNAME :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL NAME)
+;;         (WHEN VALUE
+;;           (MAKE-DAO 'OPTVALUE :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL VALUE))
+;;         (QUERY (:INSERT-INTO 'PRODUCT-2-OPTION :SET
+;;                              'PRODUCT-ID (ID DAO-OBJ)
+;;                              'OPTION-ID OPTION-ID))))))
 
-
-
-
-;;  LANG
-
-(def~daoclass-entity lang ()
-  ((id                :col-type integer         :initform (incf-lang-id))
-   (val               :col-type string          :initform ""))
-  (:keys id)
-  (:incf id)
-  (:re-init t))
-
-(make-dao 'lang :val "ru")
-(make-dao 'lang :val "en")
 
 
 ;;  OPTNAME
@@ -174,6 +198,73 @@ alter user <dbuser> with password '<dbpassword>';
   (:keys id)
   (:incf id)
   (:re-init t))
+
+
+
+
+;;  LANG
+
+(def~daoclass-entity lang ()
+  ((id                :col-type integer         :initform (incf-lang-id))
+   (code              :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t)
+  (:re-link t))
+
+
+(let ((ru-lang-id (id (make-dao 'lang :code "ru"))))
+  (lang-add-option ru-lang-id "ru" "Язык" "Русский")
+  (let ((en-lang-id (id (make-dao 'lang :code "en"))))
+    (lang-add-option en-lang-id "ru" "Язык" "Английский")
+    (lang-add-option en-lang-id "en" "Language" "English")
+    (lang-add-option ru-lang-id "en" "Language" "Russian")))
+
+;; TODO: Получение в i18str
+
+
+
+;; COUNTRY
+
+(def~daoclass-entity country ()
+  ((id                :col-type integer         :initform (incf-country-id))
+   (code              :col-type string          :initform "")
+  (:keys id)
+  (:incf id)
+  (:re-init t))
+
+(make-dao 'country :code "rus" :name "Россия")
+(make-dao 'country :code "ita" :name "Italy")
+
+
+;; CITY
+(def~daoclass-entity city ()
+  ((id                :col-type integer         :initform (incf-city-id))
+   (country-id        :col-type integer         :initform 0)
+   (name              :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
+
+(make-dao 'city :country-id 1 :name "Санкт-Петербург")
+(make-dao 'city :country-id 1 :name "Москва")
+(make-dao 'city :country-id 2 :name "Rome")
+
+
+;; SUBWAY
+(def~daoclass-entity subway ()
+  ((id                :col-type integer         :initform (incf-subway-id))
+   (sity-id           :col-type integer         :initform 0)
+   (name              :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
+
+(make-dao 'city :country-id 1 :name "Санкт-Петербург")
+(make-dao 'city :country-id 1 :name "Москва")
+(make-dao 'city :country-id 2 :name "Rome")
+
+
 
 
 ;;  PRODUCT

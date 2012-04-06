@@ -14,6 +14,34 @@
 ;; (restas:define-route main ("/")
 ;;   "manifest stub")
 
+
+(restas:define-route lang ("/lang")
+  (format nil "{\"response\": ~A}"
+          (json:encode-json-to-string
+           (with-connection *db-spec*
+             (select-dao 'lang)))))
+
+(restas:define-route country ("/country")
+  (format nil "{\"response\": ~A}"
+          (json:encode-json-to-string
+           (with-connection *db-spec*
+             (select-dao 'country)))))
+
+
+(restas:define-route city ("/city")
+  (let* ((country     (aif (hunchentoot:get-parameter "country") it "rus"))
+         (country-id  (query (:select 'id :from 'country :where (:= 'code country)) :single)))
+    (if (null country-id)
+        (format nil "{\"error\": \"country not found\"}")
+        ;; else
+        (format nil "{\"response\": ~A}"
+                (json:encode-json-to-string
+                 (with-connection *db-spec*
+                   (select-dao 'city (:= 'country-id country-id))))))))
+
+(select-dao 'city (:= 'country-id 1))
+
+
 ;; (restas:define-route resto-list ("/restaurants")
 ;;   (let ((rs)
 ;;         (lang (aif (hunchentoot:get-parameter "lang") it "ru")))
