@@ -135,13 +135,12 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  LANG
 
-(def~daoclass-entity
-    lang ()
-    ((id                :col-type integer         :initform (incf-lang-id))
-     (val               :col-type string          :initform ""))
-    (:keys id)
-    (:incf id)
-    (:re-init t))
+(def~daoclass-entity lang ()
+  ((id                :col-type integer         :initform (incf-lang-id))
+   (val               :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
 
 (make-dao 'lang :val "ru")
 (make-dao 'lang :val "en")
@@ -149,47 +148,43 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  OPTNAME
 
-(def~daoclass-entity
-    optname ()
-    ((option-id         :col-type integer         :initform 0)
-     (lang-id           :col-type integer         :initform 0)
-     (val               :col-type string          :initform ""))
-    (:re-init t))
+(def~daoclass-entity optname ()
+  ((option-id         :col-type integer         :initform 0)
+   (lang-id           :col-type integer         :initform 0)
+   (val               :col-type string          :initform ""))
+  (:re-init t))
 
 
 ;;  OPTVALUE
 
-(def~daoclass-entity
-    optvalue ()
-    ((option-id         :col-type integer         :initform 0)
-     (lang-id           :col-type integer         :initform 0)
-     (val               :col-type string          :initform "")
-     (product-id        :col-type integer         :initform 0))
-    (:re-init t))
+(def~daoclass-entity optvalue ()
+  ((option-id         :col-type integer         :initform 0)
+   (lang-id           :col-type integer         :initform 0)
+   (val               :col-type string          :initform "")
+   (product-id        :col-type integer         :initform 0))
+  (:re-init t))
 
 
 ;;  OPTION
 
-(def~daoclass-entity
-    option ()
-    ((id                :col-type integer         :initform (incf-option-id))
-     (parent-id         :col-type integer         :initform 0)
-     (optype            :col-type string          :initform ""))
-    (:keys id)
-    (:incf id)
-    (:re-init t))
+(def~daoclass-entity option ()
+  ((id                :col-type integer         :initform (incf-option-id))
+   (parent-id         :col-type integer         :initform 0)
+   (optype            :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
 
 
 ;;  PRODUCT
 
-(def~daoclass-entity
-    product ()
-    ((id                :col-type integer         :initform (incf-product-id))
-     (category-id       :col-type integer         :initform 0)
-     (options                                     :initform ""))
-    (:keys id)
-    (:incf id)
-    (:re-init t))
+(def~daoclass-entity product ()
+  ((id                :col-type integer         :initform (incf-product-id))
+   (category-id       :col-type integer         :initform 0)
+   (options                                     :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
 
 
 ;;  PRODUCT-2-OPTION
@@ -199,14 +194,13 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  CATEGORY
 
-(def~daoclass-entity
-    category ()
-    ((id                :col-type integer         :initform (incf-category-id))
-     (parent-id         :col-type integer         :initform 0)
-     (shop-id           :col-type integer         :initform 0))
-    (:keys id)
-    (:incf id)
-    (:re-init t))
+(def~daoclass-entity category ()
+  ((id                :col-type integer         :initform (incf-category-id))
+   (parent-id         :col-type integer         :initform 0)
+   (shop-id           :col-type integer         :initform 0))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
 
 
 ;;  CATEGORY-2-OPTION
@@ -216,12 +210,11 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;;  SHOP
 
-(def~daoclass-entity
-    shop ()
-    ((id                :col-type integer         :initform (incf-shop-id)))
-    (:keys id)
-    (:incf id)
-    (:re-init t))
+(def~daoclass-entity shop ()
+  ((id                :col-type integer         :initform (incf-shop-id)))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
 
 ;;  SHOP-2-OPTION
 
