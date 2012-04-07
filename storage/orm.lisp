@@ -25,7 +25,8 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *db-pass* "resto1111")
 (defparameter *db-serv* "localhost")
 (defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
-;; (connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
+(connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
+(disconnect-toplevel)
 
 ;; (with-connection *db-spec*
 ;;   (query (:select '* :from 'product)))
@@ -53,13 +54,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;; linktable test
 ;; (print (macroexpand-1 '(def~daoclass-linktable shop option t)))
-;; (PROGN
-;;   (DEFCLASS SHOP-2-OPTION NIL
-;;     ((SHOP-ID   :COL-TYPE INTEGER :INITARG :SHOP-ID   :INITFORM 0  :ACCESSOR SHOP-ID)
-;;      (OPTION-ID :COL-TYPE INTEGER :INITARG :OPTION-ID :INITFORM 0  :ACCESSOR OPTION-ID))
-;;     (:METACLASS DAO-CLASS))
-;;   (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'SHOP-2-OPTION)))
-;;   (EXECUTE (DAO-TABLE-DEFINITION 'SHOP-2-OPTION)))
 
 
 ;; produce incrementor closure
@@ -73,13 +67,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;; incrementor test
 ;; (print (macroexpand-1 '(incrementor product id)))
-;; (LET ((INC-PRODUCT-ID))
-;;   (LIST
-;;     (DEFUN INCF-PRODUCT-ID ()
-;;       (INCF INC-PRODUCT-ID))
-;;     (DEFUN INIT-PRODUCT-ID (INIT-VALUE)
-;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
-
 
 
 ;; produce (and re-init storage table if need) entity object
@@ -122,79 +109,40 @@ alter user <dbuser> with password '<dbpassword>';
        ,(when re-link
               `(progn
                  (def~daoclass-linktable ,name option ,re-init)
-                 (defmethod add-option ((dao-obj ,name) lang name &optional (value t))
+                 (defmethod make-option ((dao-obj ,name) lang name &optional (optype "") (parent-id 0))
                    (let ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
-                         (option-id  (id (make-dao 'option :optype (symbol-name ',name)))))
-                     (make-dao   'optname  :option-id option-id :lang-id lang-id :val name)
-                     (when value
-                       (make-dao 'optvalue :option-id option-id :lang-id lang-id :val value))
+                         (option     (make-dao 'option :lang lang :name name :optype optype :parent-id parent-id)))
                      (query (:insert-into ',(intern (format nil "~A-2-OPTION" (symbol-name name))) :set
-                                          ',(intern (format nil "~A-ID" name)) (id dao-obj)
-                                          'option-id option-id))))
-                 (defmethod get-opts ((dao-obj ,name) lang)
-                   (let* ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
-                          (option-ids (mapcar #'car
-                                              (query (:select 'option.id :from ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
-                                                              :inner-join 'option
-                                                              :on (:= ',(intern (format nil "~A-2-OPTION.OPTION-ID" (symbol-name name)))
-                                                                      'option.id)
-                                                              :where (:= ',(intern (format nil "~A-ID" name))
-                                                                         (id dao-obj)))))))
-                     (loop :for item :in option-ids
-                        :when (let ((name   (query (:select 'val :from 'optname  :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single))
-                                    (value  (query (:select 'val :from 'optvalue :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single)))
-                                (if name    (cons name value) nil))
-                        :collect it)))
-                 (defmethod get-option ((dao-obj ,name) lang name)
-                   (cdr (assoc name (get-opts dao-obj lang) :test #'equal))))))))
+                                          'lang-id lang-id
+                                          'option-id (id option)))
+                     option))
+                 (defmethod load-options ((dao-obj ,name))
+                   (loop :for item :in (mapcar #'car (query (:select 'option-id :from  ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
+                                                                     :where (:= ',(intern (format nil "~A-ID" (symbol-name name))) 1))))
+                      :collect (initialize-instance (get-dao 'option item))))
+                 (defmethod get-opts-val ((dao-obj ,name))
+                   (mapcar #'(lambda (option)
+                               (list
+                                (name option)
+                                (mapcar #'(lambda (optval)
+                                            (val optval))
+                                        (load-value option))))
+                           (load-options dao-obj)))
+                 ;; (defmethod get-option ((dao-obj ,name) lang name)
+                 ;;   (cdr (assoc name (get-opts dao-obj lang) :test #'equal)))
+                 )))))
 
 
 ;; entity test
-;; (print (macroexpand-1 '(def~daoclass-entity product ()
-;;                         ((id                :col-type integer         :initform (incf-product-id))
-;;                          (category-id       :col-type integer         :initform 0)
-;;                          (options                                     :initform ""))
-;;                         (:keys id)
-;;                         (:incf id)
-;;                         (:re-init t)
-;;                         (:re-link t))))
+(print (macroexpand-1 '(def~daoclass-entity product ()
+                        ((id                :col-type integer         :initform (incf-product-id))
+                         (category-id       :col-type integer         :initform 0)
+                         (options                                     :initform ""))
+                        (:keys id)
+                        (:incf id)
+                        (:re-init t)
+                        (:re-link t))))
 
-;; (PROGN
-;;   (INCREMENTOR PRODUCT ID)
-;;   (DEFCLASS PRODUCT NIL
-;;     ((ID          :COL-TYPE INTEGER :INITARG :ID          :INITFORM (INCF-PRODUCT-ID) :ACCESSOR ID)
-;;      (CATEGORY-ID :COL-TYPE INTEGER :INITARG :CATEGORY-ID :INITFORM 0                 :ACCESSOR CATEGORY-ID)
-;;      (OPTIONS                       :INITARG :OPTIONS     :INITFORM ""                :ACCESSOR OPTIONS))
-;;     (:METACLASS DAO-CLASS)
-;;     (:KEYS ID))
-;;   (PROGN
-;;     (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'PRODUCT)))
-;;     (EXECUTE (DAO-TABLE-DEFINITION 'PRODUCT)))
-;;   (PROGN
-;;     (DEF~DAOCLASS-LINKTABLE PRODUCT OPTION T)
-;;     (DEFMETHOD ADD-OPTION ((DAO-OBJ PRODUCT) LANG NAME &OPTIONAL (VALUE T))
-;;       (LET ((LANG-ID    (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
-;;             (OPTION-ID  (ID (MAKE-DAO 'OPTION :OPTYPE (SYMBOL-NAME 'PRODUCT)))))
-;;         (MAKE-DAO 'OPTNAME :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL NAME)
-;;         (WHEN VALUE
-;;           (MAKE-DAO 'OPTVALUE :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL VALUE))
-;;         (QUERY (:INSERT-INTO 'PRODUCT-2-OPTION :SET
-;;                              'PRODUCT-ID (ID DAO-OBJ)
-;;                              'OPTION-ID OPTION-ID))))
-;;     (DEFMETHOD GET-OPTS ((DAO-OBJ PRODUCT) LANG)
-;;       (LET* ((LANG-ID     (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
-;;              (OPTION-IDS  (MAPCAR #'CAR
-;;                                   (QUERY
-;;                                    (:SELECT 'OPTION.ID :FROM 'PRODUCT-2-OPTION
-;;                                             :INNER-JOIN 'OPTION :ON (:= 'PRODUCT-2-OPTION.OPTION-ID 'OPTION.ID)
-;;                                             :WHERE (:= 'PRODUCT-ID (ID DAO-OBJ)))))))
-;;         (LOOP :FOR ITEM :IN OPTION-IDS
-;;            :WHEN (LET ((NAME   (QUERY (:SELECT 'VAL :FROM 'OPTNAME  :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE))
-;;                        (VALUE  (QUERY (:SELECT 'VAL :FROM 'OPTVALUE :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE)))
-;;                    (IF NAME (CONS NAME VALUE) NIL))
-;;            :COLLECT IT)))
-;;     (DEFMETHOD GET-OPTION ((DAO-OBJ PRODUCT) LANG NAME)
-;;       (CDR (ASSOC NAME (GET-OPTS DAO-OBJ LANG) :TEST #'EQUAL)))))
 
 
 ;; (defparameter *x* (make-dao 'product))
@@ -217,22 +165,16 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-link t))
 
 
-;;  OPTNAME
+;;  OPTVAL
 
-(def~daoclass-entity optname ()
-  ((option-id         :col-type integer         :initform 0)
+(def~daoclass-entity optval ()
+  ((id                :col-type integer         :initform (incf-optval-id))
+   (option-id         :col-type integer         :initform 0)
    (lang-id           :col-type integer         :initform 0)
+   (product-id        :col-type integer         :initform 0)
    (val               :col-type string          :initform ""))
-  (:re-init t))
-
-
-;;  OPTVALUE
-
-(def~daoclass-entity optvalue ()
-  ((option-id         :col-type integer         :initform 0)
-   (lang-id           :col-type integer         :initform 0)
-   (val               :col-type string          :initform "")
-   (product-id        :col-type integer         :initform 0))
+  (:keys id)
+  (:incf id)
   (:re-init t))
 
 
@@ -241,14 +183,46 @@ alter user <dbuser> with password '<dbpassword>';
 (def~daoclass-entity option ()
   ((id                :col-type integer         :initform (incf-option-id))
    (parent-id         :col-type integer         :initform 0)
-   (optype            :col-type string          :initform ""))
+   (optype            :col-type string          :initform "")
+   (lang-id           :col-type integer         :initform 0)
+   (name              :col-type string          :initform ""))
   (:keys id)
   (:incf id)
   (:re-init t))
 
+(defmethod make-value ((dao-obj option) lang val &optional (product-id 0))
+  (make-dao 'optval
+            :option-id (id dao-obj)
+            :lang-id (query (:select 'id :from 'lang :where (:= 'code lang)) :single)
+            :val val
+            :product-id product-id))
+
+(defmethod load-value ((dao-obj option))
+  (loop :for item :in (query-dao 'optval (:select '* :from 'optval :where (:= 'option-id (id dao-obj))))
+     :collect (initialize-instance item)))
 
 ;; write to lang & lang_2_option
 (defparameter *ru* (make-dao 'lang :code "ru"))
+(make-option *ru* "ru" "test-name")
+(make-option *ru* "ru" "test-name-2")
+(defparameter *tmp* (make-option *ru* "ru" "test-name-3"))
+(make-value *tmp* "ru" "test-value-3")
+(make-value *tmp* "ru" "test-value-4")
+
+
+(defun get-vals-by-option (optname-str)
+  (awhen (find-if #'(lambda (dao-option)
+                      (equal optname-str (name dao-option)))
+                  (load-options *ru*))
+    (load-value it)))
+
+(mapcar #'(lambda (x)
+            (val x))
+        (get-vals-by-option "test-name-3"))
+
+
+
+
 (add-option *ru* "ru" "name" "Русский")
 (defparameter *en* (make-dao 'lang :code "en"))
 (add-option *en* "ru" "name" "Английский")
