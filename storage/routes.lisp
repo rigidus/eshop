@@ -15,6 +15,59 @@
 ;;   "manifest stub")
 
 
+(defun get-languages (&optional (lang-param-str "ru"))
+  (loop :for item :in (with-connection *db-spec* (select-dao 'lang)) :collect
+     (list
+      (cons 'code (code item))
+      (cons 'name (get-option item lang-param-str "name")))))
+
+(json:encode-json-to-string (get-languages "en"))
+
+(defun get-countryes (&optional (lang-param-str "ru"))
+  (loop :for item :in (with-connection *db-spec* (select-dao 'country)) :collect
+     (list
+      (cons 'id   (id item))
+      (cons 'code (code item))
+      (cons 'name (get-option item lang-param-str "name")))))
+
+(json:encode-json-to-string (get-countryes))
+
+(defun get-cityes (country &optional (lang-param-str "ru"))
+  (let ((country-id (if (typep country 'integer)
+                        country
+                        (let ((dao-obj-lst (select-dao 'country (:= 'code country))))
+                          (if (null dao-obj-lst)
+                              (return-from get-cityes "country not found")
+                              (id (car dao-obj-lst)))))))
+    (loop :for item :in (with-connection *db-spec* (select-dao 'city (:= 'country-id country-id))) :collect
+       (list
+        (cons 'id   (id item))
+        (cons 'code (code item))
+        (cons 'name (get-option item lang-param-str "name"))))))
+
+(json:encode-json-to-string (get-cityes 1 "ru"))
+
+
+(defun get-subways (city &optional (lang-param-str "ru"))
+  (let ((city-id (if (typep city 'integer)
+                        city
+                        (let ((dao-obj-lst (select-dao 'city (:= 'code city))))
+                          (if (null dao-obj-lst)
+                              (return-from get-cityes "city not found")
+                              (id (car dao-obj-lst)))))))
+    (loop :for item :in (with-connection *db-spec* (select-dao 'subway (:= 'city-id city-id))) :collect
+       (list
+        (cons 'id   (id item))
+        (cons 'code (code item))
+        (cons 'name (get-option item lang-param-str "name"))))))
+
+
+(json:encode-json-to-string (get-subways "spb" "ru"))
+
+
+;;;;
+
+
 (restas:define-route lang ("/lang")
   (format nil "{\"response\": ~A}"
           (json:encode-json-to-string
