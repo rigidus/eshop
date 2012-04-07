@@ -61,8 +61,39 @@
         (cons 'code (code item))
         (cons 'name (get-option item lang-param-str "name"))))))
 
+(json:encode-json-to-string (get-subways "spb" "en"))
 
-(json:encode-json-to-string (get-subways "spb" "ru"))
+
+(defun get-shop (&key (country "rus") (city "spb") subways age-min age-max latitude longitude distance limit offset sort sort-type (lang "ru"))
+  (let ((country-id (if (typep country 'integer)
+                        country
+                        (let ((dao-obj-lst (select-dao 'country (:= 'code country))))
+                          (if (null dao-obj-lst)
+                              (return-from get-cityes "country not found")
+                              (id (car dao-obj-lst))))))
+        (city-id (if (typep city 'integer)
+                     city
+                     (let ((dao-obj-lst (select-dao 'city (:= 'code city))))
+                       (if (null dao-obj-lst)
+                           (return-from get-cityes "city not found")
+                           (id (car dao-obj-lst))))))
+        (subway-ids (loop :for item :in subways
+                       :when (if (typep item 'integer)
+                                 item
+                                 (let ((dao-obj-lst (select-dao 'subway (:= 'code city))))
+                                   (if (null dao-obj-lst)
+                                       nil
+                                       (id (car dao-obj-lst)))))
+                       :collect it)))
+    ;; todo age-min age-max latitude longitude distance
+    (select-dao 'shop (:= 'address-city-id 1))
+    ))
+
+(get-shop :subways '(1 2))
+
+
+
+
 
 
 ;;;;

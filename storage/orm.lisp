@@ -312,6 +312,95 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *avto* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avto"))
 (add-option *avto* "ru" "name" "Автово")
 (add-option *avto* "en" "name" "Avtovo")
-(defparameter *narv* (make-dao 'city :country-id (id *spb*) :city-code (code *spb*) :code "narv"))
+(defparameter *narv* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narv"))
 (add-option *narv* "ru" "name" "Нарвская")
 (add-option *narv* "en" "name" "Narvskaya")
+
+
+;;  SHOP
+
+(def~daoclass-entity shop ()
+  ((id                :col-type integer         :initform (incf-shop-id))
+   (opening-date      :col-type bigint          :initform 0)
+   (price             :col-type integer         :initform 0)
+   (logo              :col-type string          :initform "")
+   (photo             :col-type string          :initform "")
+   (site              :col-type string          :initform "")
+   (indoor            :col-type integer         :initform 0)
+   (outdoor           :col-type integer         :initform 0)
+   (latitude          :col-type float           :initform 0.0)
+   (longitude         :col-type float           :initform 0.0)
+   (postal-code       :col-type string          :initform 0.0)
+   (city-id           :col-type float           :initform 0.0)
+   (city-code         :col-type string          :initform "")
+   (rating            :col-type float           :initform 0.0)
+   (rating-count      :col-type integer         :initform 0)
+   (comment-count     :col-type integer         :initform 0)
+   (worktime          :col-type string          :initform ""))
+  ;; name description phone subways street building
+  (:keys id)
+  (:incf id)
+  (:re-init t)
+  (:re-link t))
+
+(def~daoclass-linktable shop subway t)
+
+
+;; decoded time
+(multiple-value-bind (second minute hour date month year)
+    (decode-universal-time (get-universal-time))
+  (format nil "~2,'0d.~2,'0d.~d" date month year))
+
+(defparameter *makarena*
+  (make-dao
+   'shop
+   :opening-date (get-universal-time)
+   :price 3
+   :logo "/images/restaurant/1.jpg"
+   :photo "/images/restaurnt/1.jpg"
+   :site "http://macarenabar.ru"
+   :indoor 162
+   :outdoor 40
+   :latitude 59.8236
+   :longitude 30.3373
+   :postal-code "307660"
+   :city-id (id *spb*)
+   :city-code (code *spb*)
+   :rating 3.34
+   :rating-count 96
+   :comment-count 89
+   ;; :worktime '((("12:00" "23:00"))
+   ;;             (("08:00" "12:00")("15:00" "23:00"))
+   ;;             nil
+   ;;             (("08:00" "12:00")("15:00" "22:00"))
+   ;;             nil
+   ;;             nil
+   ;;             (("11:00" "23:00")))
+   ))
+(add-option *makarena* "ru" "name" "Макарена")
+(add-option *makarena* "en" "name" "Makarena")
+;; name description phone subways street building
+(add-option *makarena* "ru" "descr" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+(add-option *makarena* "en" "descr" "we are ...")
+(add-option *makarena* "ru" "phone-main" "+78129063900")
+(add-option *makarena* "ru" "phone-delivery" "+78129063900")
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avto*)))
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narv*)))
+(add-option *makarena* "ru" "street" "Московский проспект")
+(add-option *makarena* "en" "street" "Moscowsky prospect")
+(add-option *makarena* "ru" "building" "206")
+(add-option *makarena* "en" "building" "206")
+(add-option *makarena* "en" "building" "206")
+
+ ;; :optional (make-instance
+ ;;            'optional
+ ;;            :kitchen '("мексиканская" "итальянская")
+ ;;            :service '("завтрак" "ланч")
+ ;;            :additionally '("кальян")
+ ;;            :children '("меню" "няня" "детская комната")
+ ;;            :music '("живая")
+ ;;            :view '("панорамный"))
+ ;; ))
+
+
+(get-opts *makarena* "ru")

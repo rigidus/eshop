@@ -48,13 +48,6 @@
 (def~daoclass-linktable category option t)
 
 
-;;  SHOP
-
-(def~daoclass-entity shop ()
-  ((id                :col-type integer         :initform (incf-shop-id)))
-  (:keys id)
-  (:incf id)
-  (:re-init t))
 
 ;;  SHOP-2-OPTION
 
