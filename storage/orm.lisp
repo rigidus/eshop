@@ -382,29 +382,31 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 (print (get-all-entityes-opt-val (select-dao 'shop)
-                                 :entity-func #'(lambda (shop) (list (id shop) (site shop)))
-                                 :optname-func #'(lambda (option) (list (id option) (parent-id option) (name option)))
-                                 :optvalue-func #'(lambda (optval) (list (lang-id optval) (val optval)))))
+                                 :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
+                                 :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
+                                 :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
 
-(((1 "http://macarenabar.ru")
-  (((10 0 "name")
-    ((1 "Makarena")
-     (2 "Makarena")))
-   ((11 0 "description")
-    ((1 "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
-     (2 "we are ...")))
-   ((12 0 "phone") NIL)
-   ((13 12 "phone-main")
-    ((0 "+78129063900")))
-   ((14 12 "phone-delivery")
-    ((0 "+78129063900")))
-   ((17 0 "street")
-    ((1 "Московский проспект")
-     (2 "Moscowsky prospect")))
-   ((18 0 "building")
-    ((1 "дом 206")
-     (2 "house 206"))))))
 
+(((:SHOP 1 "http://macarenabar.ru")
+  (((:OPT 10 0 "name")
+    ((:VAL 1 "Makarena")
+     (:VAL 2 "Makarena")))
+   ((:OPT 11 0 "description")
+    ((:VAL 1 "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+     (:VAL 2 "we are ...")))
+   ((:OPT 12 0 "phone") NIL)
+   ((:OPT 13 12 "phone-main")
+    ((:VAL 0 "+78129063900")))
+   ((:OPT 14 12 "phone-delivery")
+    ((:VAL 0 "+78129063900")))
+   ((:OPT 17 0 "street")
+    ((:VAL 1 "Московский проспект")
+     (:VAL 2 "Moscowsky prospect")))
+   ((:OPT 18 0 "building")
+    ((:VAL 1 "дом 206")
+     (:VAL 2 "house 206"))))))
+
+;; TODO ::: SUBWAYS
 
 ;; :optional (make-instance
 ;;            'optional
