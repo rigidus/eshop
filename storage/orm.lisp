@@ -218,14 +218,14 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 (defparameter *rus* (make-dao 'country :code "rus"))
-(let ((rus-country-name-option (make-option *rus* 0 "name")))
-  (make-value rus-country-name-option "ru" "Россия")
-  (make-value rus-country-name-option "en" "Russia"))
+(let ((opt (make-option *rus* 0 "name")))
+  (make-value opt "ru" "Россия")
+  (make-value opt "en" "Russia"))
 
 (defparameter *usa* (make-dao 'country :code "usa"))
-(let ((usa-country-name-option (make-option *usa* 0 "name")))
-  (make-value usa-country-name-option "ru" "США")
-  (make-value usa-country-name-option "en" "USA"))
+(let ((opt (make-option *usa* 0 "name")))
+  (make-value opt "ru" "США")
+  (make-value opt "en" "USA"))
 
 
 (defun get-all-opt-val (dao-obj &key (optname-func #'identity) (optvalue-func #'identity))
@@ -239,15 +239,11 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 ;; (get-all-entityes-opt-val (select-dao 'country)
-;;                           :entity-func #'(lambda (country)
-;;                                            (list (id country) (code country)))
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
 ;;                           :optname-func #'(lambda (option) (name option))
 ;;                           :optvalue-func #'(lambda (optval) (val optval)))
 
 ;; (get-all-entityes-opt-val (select-dao 'country))
-
-
-;;;;;;;;;;; <-----------------
 
 
 ;; CITY
@@ -261,31 +257,26 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-
-
 (defparameter *spb* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "spb"))
-(let ((name-option (make-option *spb* 0 "name")))
-  (make-value name-option "ru" "Санкт-Петербург")
-  (make-value name-option "en" "St.Peterburg"))
-
+(let ((opt (make-option *spb* 0 "name")))
+  (make-value opt "ru" "Санкт-Петербург")
+  (make-value opt "en" "St.Peterburg"))
 
 (defparameter *mos* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "mos"))
-(let ((name-option (make-option *mos* 0 "name")))
-  (make-value name-option "ru" "Москва")
-  (make-value name-option "en" "Moscow"))
-
+(let ((opt (make-option *mos* 0 "name")))
+  (make-value opt "ru" "Москва")
+  (make-value opt "en" "Moscow"))
 
 (defparameter *nyk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "nyk"))
-(let ((name-option (make-option *nyk* 0 "name")))
-  (make-value name-option "ru" "Нью-Йорк")
-  (make-value name-option "en" "New York"))
+(let ((opt (make-option *nyk* 0 "name")))
+  (make-value opt "ru" "Нью-Йорк")
+  (make-value opt "en" "New York"))
 
+;; (get-all-entityes-opt-val (select-dao 'city)
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
 
-(get-all-opt-val *mos* :readable t)
-
-(defparameter *jfk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "jfk"))
-(add-option *jfk* "ru" "name" "Нью-Йорк")
-(add-option *jfk* "en" "name" "New York")
 
 
 ;; SUBWAY
@@ -299,12 +290,20 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-(defparameter *avto* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avto"))
-(add-option *avto* "ru" "name" "Автово")
-(add-option *avto* "en" "name" "Avtovo")
-(defparameter *narv* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narv"))
-(add-option *narv* "ru" "name" "Нарвская")
-(add-option *narv* "en" "name" "Narvskaya")
+(defparameter *avtovo* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avtovo"))
+(let ((opt (make-option *avtovo* 0 "name")))
+  (make-value opt "ru" "Автово")
+  (make-value opt "en" "Avtovo"))
+
+(defparameter *narvskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narvskaya"))
+(let ((opt (make-option *narvskaya* 0 "name")))
+  (make-value opt "ru" "Нарвская")
+  (make-value opt "en" "Narvskaya"))
+
+;; (get-all-entityes-opt-val (select-dao 'subway)
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
 
 
 ;;  SHOP
@@ -327,7 +326,7 @@ alter user <dbuser> with password '<dbpassword>';
    (rating-count      :col-type integer         :initform 0)
    (comment-count     :col-type integer         :initform 0)
    (worktime          :col-type string          :initform ""))
-  ;; name description phone subways street building
+  ;; + name description phone subways street building
   (:keys id)
   (:incf id)
   (:re-init t)
@@ -335,11 +334,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 (def~daoclass-linktable shop subway t)
 
-
-;; decoded time
-(multiple-value-bind (second minute hour date month year)
-    (decode-universal-time (get-universal-time))
-  (format nil "~2,'0d.~2,'0d.~d" date month year))
 
 (defparameter *makarena*
   (make-dao
@@ -358,39 +352,66 @@ alter user <dbuser> with password '<dbpassword>';
    :city-code (code *spb*)
    :rating 3.34
    :rating-count 96
-   :comment-count 89
-   ;; :worktime '((("12:00" "23:00"))
-   ;;             (("08:00" "12:00")("15:00" "23:00"))
-   ;;             nil
-   ;;             (("08:00" "12:00")("15:00" "22:00"))
-   ;;             nil
-   ;;             nil
-   ;;             (("11:00" "23:00")))
-   ))
-(add-option *makarena* "ru" "name" "Макарена")
-(add-option *makarena* "en" "name" "Makarena")
-;; name description phone subways street building
-(add-option *makarena* "ru" "descr" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
-(add-option *makarena* "en" "descr" "we are ...")
-(add-option *makarena* "ru" "phone-main" "+78129063900")
-(add-option *makarena* "ru" "phone-delivery" "+78129063900")
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avto*)))
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narv*)))
-(add-option *makarena* "ru" "street" "Московский проспект")
-(add-option *makarena* "en" "street" "Moscowsky prospect")
-(add-option *makarena* "ru" "building" "206")
-(add-option *makarena* "en" "building" "206")
-(add-option *makarena* "en" "building" "206")
+   :comment-count 89))
 
- ;; :optional (make-instance
- ;;            'optional
- ;;            :kitchen '("мексиканская" "итальянская")
- ;;            :service '("завтрак" "ланч")
- ;;            :additionally '("кальян")
- ;;            :children '("меню" "няня" "детская комната")
- ;;            :music '("живая")
- ;;            :view '("панорамный"))
- ;; ))
+(let ((opt (make-option *makarena* 0 "name")))
+  (make-value opt "ru" "Makarena")
+  (make-value opt "en" "Makarena"))
+
+(let ((opt (make-option *makarena* 0 "description")))
+  (make-value opt "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+  (make-value opt "en" "we are ..."))
+
+(let* ((opt (make-option *makarena* 0 "phone"))
+       (opt-id (id opt)))
+  (let ((opt (make-option *makarena* 0 "phone-main" :parent-id opt-id)))
+    (make-value opt 0 "+78129063900"))
+  (let ((opt (make-option *makarena* 0 "phone-delivery" :parent-id opt-id)))
+    (make-value opt 0 "+78129063900")))
+
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avtovo*)))
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narvskaya*)))
+
+(let* ((opt (make-option *makarena* 0 "street")))
+  (make-value opt "ru" "Московский проспект")
+  (make-value opt "en" "Moscowsky prospect"))
+
+(let* ((opt (make-option *makarena* 0 "building")))
+  (make-value opt "ru" "дом 206")
+  (make-value opt "en" "house 206"))
 
 
-(get-opts *makarena* "ru")
+(print (get-all-entityes-opt-val (select-dao 'shop)
+                                 :entity-func #'(lambda (shop) (list (id shop) (site shop)))
+                                 :optname-func #'(lambda (option) (list (id option) (parent-id option) (name option)))
+                                 :optvalue-func #'(lambda (optval) (list (lang-id optval) (val optval)))))
+
+(((1 "http://macarenabar.ru")
+  (((10 0 "name")
+    ((1 "Makarena")
+     (2 "Makarena")))
+   ((11 0 "description")
+    ((1 "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+     (2 "we are ...")))
+   ((12 0 "phone") NIL)
+   ((13 12 "phone-main")
+    ((0 "+78129063900")))
+   ((14 12 "phone-delivery")
+    ((0 "+78129063900")))
+   ((17 0 "street")
+    ((1 "Московский проспект")
+     (2 "Moscowsky prospect")))
+   ((18 0 "building")
+    ((1 "дом 206")
+     (2 "house 206"))))))
+
+
+;; :optional (make-instance
+;;            'optional
+;;            :kitchen '("мексиканская" "итальянская")
+;;            :service '("завтрак" "ланч")
+;;            :additionally '("кальян")
+;;            :children '("меню" "няня" "детская комната")
+;;            :music '("живая")
+;;            :view '("панорамный"))
+;; ))
