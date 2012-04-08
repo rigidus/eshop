@@ -26,13 +26,7 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *db-serv* "localhost")
 (defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
 (connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
-(disconnect-toplevel)
-
-;; (with-connection *db-spec*
-;;   (query (:select '* :from 'product)))
-
-
-
+;; (disconnect-toplevel)
 
 ;; produce (and re-init storage table if need) linktable object
 (defmacro def~daoclass-linktable (src dst &optional re-init)
@@ -118,21 +112,22 @@ alter user <dbuser> with password '<dbpassword>';
        ,(when re-link
               `(progn
                  (def~daoclass-linktable ,name option ,re-init)
-                 (defmethod make-option ((dao-obj ,name) lang name &optional (optype "") (parent-id 0))
+                 (defmethod make-option ((dao-obj ,name) lang name &key (optype "") (parent-id 0))
                    (let* ((lang-id    (get-lang-id lang))
-                          (option     (make-dao 'option :lang-id lang-id :name name :optype optype :parent-id parent-id)))
+                          (option     (make-dao 'option :lang-id lang-id :name name
+                                                :optype optype :parent-id parent-id)))
                      (query (:insert-into ',(intern (format nil "~A-2-OPTION" (symbol-name name))) :set
                                           ',(intern (format nil "~A-ID" (symbol-name name))) (id dao-obj)
                                           'option-id (id option)))
                      option))
-                 (defmethod load-options ((dao-obj ,name) &key lang name optype parent-id)
+                 (defmethod load-options ((dao-obj ,name) &key lang name optype entity entity-id parent-id)
                    (let ((rs (loop :for item :in (mapcar #'car (query (:select 'option-id :from  ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
                                                                                :where (:= ',(intern (format nil "~A-ID" (symbol-name name))) 1))))
                                 :collect (initialize-instance (get-dao 'option item)))))
                      (when lang (setf rs (remove-if-not #'(lambda (x) (equal (lang-id x) (get-lang-id lang))) rs)))
                      (when name (setf rs (remove-if-not #'(lambda (x) (equal name (name x))) rs)))
                      (when optype (setf rs (remove-if-not #'(lambda (x) (equal optype (optype x))) rs)))
-                     (when parent-id (setf rs (remove-if-not #'(lambda (x) (equal parent-id-id (parent-id x))) rs)))
+                     (when parent-id (setf rs (remove-if-not #'(lambda (x) (equal parent-id (parent-id x))) rs)))
                      rs))
                  (defmethod get-opts-val ((dao-obj ,name))
                    (mapcar #'(lambda (option)
@@ -140,7 +135,7 @@ alter user <dbuser> with password '<dbpassword>';
                                 (name option)
                                 (mapcar #'(lambda (optval)
                                             (val optval))
-                                        (load-value option))))
+                                        (load-values option))))
                            (load-options dao-obj))))))))
 
 
@@ -169,7 +164,6 @@ alter user <dbuser> with password '<dbpassword>';
   ((id                :col-type integer         :initform (incf-optval-id))
    (option-id         :col-type integer         :initform 0)
    (lang-id           :col-type integer         :initform 0)
-   (product-id        :col-type integer         :initform 0)
    (val               :col-type string          :initform ""))
   (:keys id)
   (:incf id)
@@ -186,14 +180,13 @@ alter user <dbuser> with password '<dbpassword>';
   (:incf id)
   (:re-init t))
 
-(defmethod make-value ((option-obj option) lang val &optional (product-id 0))
+(defmethod make-value ((option-obj option) lang val)
   (make-dao 'optval
             :option-id (id option-obj)
             :lang-id (get-lang-id lang)
-            :val val
-            :product-id product-id))
+            :val val))
 
-(defmethod load-value ((option-obj option))
+(defmethod load-values ((option-obj option))
   (loop :for item :in (query-dao 'optval (:select '* :from 'optval :where (:= 'option-id (id option-obj))))
      :collect (initialize-instance item)))
 
@@ -205,44 +198,7 @@ alter user <dbuser> with password '<dbpassword>';
 (make-option *ru* "en" "Russian")
 (make-option *en* "ru" "Английский")
 
-(encode-json-to-string (load-options *ru* :lang "en"))
-
-;; (defmethod make-option ((dao-obj lang) lang name &optional (optype "") (parent-id 0))
-;;   (let* ((lang-id    (get-lang-id lang))
-;;          (option     (make-dao 'option :lang-id lang-id :name name :optype optype :parent-id parent-id)))
-;;     (query (:insert-into 'LANG-2-OPTION :set
-;;                          'LANG-ID (id dao-obj)
-;;                          'option-id (id option)))
-;;     option))
-
-
-
-
-(defparameter *tmp* (make-option *ru* "ru" "test-name-3"))
-
-(make-value *tmp* "ru" "test-value-3")
-(make-value *tmp* "ru" "test-value-4")
-
-
-(defun get-vals-by-option (dao-obj optname-str)
-  (awhen (find-if #'(lambda (dao-option)
-                      (equal optname-str (name dao-option)))
-                  (load-options dao-obj))
-    (load-value it)))
-
-(mapcar #'(lambda (x)
-            (val x))
-        (get-vals-by-option *ru* "test-name-3"))
-
-
-
-
-(add-option *ru* "ru" "name" "Русский")
-(defparameter *en* (make-dao 'lang :code "en"))
-(add-option *en* "ru" "name" "Английский")
-(add-option *en* "en" "name" "English")
-(add-option *ru* "en" "name" "Russian")
-
+;; (encode-json-to-string (load-options *ru* :lang "en"))
 
 ;; COUNTRY
 
@@ -254,12 +210,42 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
+
 (defparameter *rus* (make-dao 'country :code "rus"))
-(add-option *rus* "ru" "name" "Россия")
-(add-option *rus* "en" "name" "Russia")
+(let ((rus-country-name-option (make-option *rus* 0 "name")))
+  (make-value rus-country-name-option "ru" "Россия")
+  (make-value rus-country-name-option "en" "Russia"))
+
 (defparameter *usa* (make-dao 'country :code "usa"))
-(add-option *usa* "ru" "name" "США")
-(add-option *usa* "en" "name" "USA")
+(let ((usa-country-name-option (make-option *usa* 0 "name")))
+  (make-value usa-country-name-option "ru" "США")
+  (make-value usa-country-name-option "en" "USA"))
+
+
+(defun get-all-opt-val (dao-obj &key (optname-func #'identity) (optvalue-func #'identity))
+  (loop :for item :in (load-options dao-obj) :collect
+     (list (funcall optname-func item) (mapcar optvalue-func (load-values item)))))
+
+;; (get-all-opt-val *rus* :readable t)
+;; (get-all-opt-val *ru* :readable t)
+;; (get-all-opt-val *rus*)
+
+(defun get-all-entityes-opt-val (list-of-entityes &key (entity-func #'identity) (optname-func #'identity) (optvalue-func #'identity))
+  (loop :for item :in list-of-entityes :collect
+     (list (funcall entity-func item)
+           (get-all-opt-val item :optname-func optname-func :optvalue-func optvalue-func))))
+
+
+;; (get-all-entityes-opt-val (select-dao 'country)
+;;                           :entity-func #'(lambda (country)
+;;                                            (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
+
+;; (get-all-entityes-opt-val (select-dao 'country))
+
+
+;;;;;;;;;;; <-----------------
 
 
 ;; CITY
@@ -276,11 +262,25 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 (defparameter *spb* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "spb"))
-(add-option *spb* "ru" "name" "Санкт-Петербург")
-(add-option *spb* "en" "name" "St.Peterburg")
+(let ((name-option (make-option *spb* 0 "name")))
+  (make-value name-option "ru" "Санкт-Петербург")
+  (make-value name-option "en" "St.Peterburg"))
+
+
 (defparameter *mos* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "mos"))
-(add-option *mos* "ru" "name" "Москва")
-(add-option *mos* "en" "name" "Moscow")
+(let ((name-option (make-option *mos* 0 "name")))
+  (make-value name-option "ru" "Москва")
+  (make-value name-option "en" "Moscow"))
+
+
+(defparameter *nyk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "nyk"))
+(let ((name-option (make-option *nyk* 0 "name")))
+  (make-value name-option "ru" "Нью-Йорк")
+  (make-value name-option "en" "New York"))
+
+
+(get-all-opt-val *mos* :readable t)
+
 (defparameter *jfk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "jfk"))
 (add-option *jfk* "ru" "name" "Нью-Йорк")
 (add-option *jfk* "en" "name" "New York")
