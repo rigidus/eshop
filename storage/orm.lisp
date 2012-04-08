@@ -120,9 +120,13 @@ alter user <dbuser> with password '<dbpassword>';
                                           ',(intern (format nil "~A-ID" (symbol-name name))) (id dao-obj)
                                           'option-id (id option)))
                      option))
-                 (defmethod load-options ((dao-obj ,name) &key lang name optype entity entity-id parent-id)
-                   (let ((rs (loop :for item :in (mapcar #'car (query (:select 'option-id :from  ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
-                                                                               :where (:= ',(intern (format nil "~A-ID" (symbol-name name))) 1))))
+                 (defmethod load-options ((dao-obj ,name) &key lang name optype parent-id)
+                   (let ((rs (loop
+                                :for item
+                                :in (mapcar #'car
+                                            (query (:select 'option-id
+                                                            :from  ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
+                                                            :where (:= ',(intern (format nil "~A-ID" (symbol-name name))) (id dao-obj)))))
                                 :collect (initialize-instance (get-dao 'option item)))))
                      (when lang (setf rs (remove-if-not #'(lambda (x) (equal (lang-id x) (get-lang-id lang))) rs)))
                      (when name (setf rs (remove-if-not #'(lambda (x) (equal name (name x))) rs)))
@@ -198,7 +202,9 @@ alter user <dbuser> with password '<dbpassword>';
 (make-option *ru* "en" "Russian")
 (make-option *en* "ru" "Английский")
 
-;; (encode-json-to-string (load-options *ru* :lang "en"))
+(encode-json-to-string (load-options *en* :lang "en"))
+(load-options *ru*)
+
 
 ;; COUNTRY
 
@@ -225,10 +231,6 @@ alter user <dbuser> with password '<dbpassword>';
 (defun get-all-opt-val (dao-obj &key (optname-func #'identity) (optvalue-func #'identity))
   (loop :for item :in (load-options dao-obj) :collect
      (list (funcall optname-func item) (mapcar optvalue-func (load-values item)))))
-
-;; (get-all-opt-val *rus* :readable t)
-;; (get-all-opt-val *ru* :readable t)
-;; (get-all-opt-val *rus*)
 
 (defun get-all-entityes-opt-val (list-of-entityes &key (entity-func #'identity) (optname-func #'identity) (optvalue-func #'identity))
   (loop :for item :in list-of-entityes :collect
