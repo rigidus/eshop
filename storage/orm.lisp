@@ -25,13 +25,8 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *db-pass* "resto1111")
 (defparameter *db-serv* "localhost")
 (defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
-;; (connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
-
-;; (with-connection *db-spec*
-;;   (query (:select '* :from 'product)))
-
-
-
+(connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
+;; (disconnect-toplevel)
 
 ;; produce (and re-init storage table if need) linktable object
 (defmacro def~daoclass-linktable (src dst &optional re-init)
@@ -53,13 +48,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;; linktable test
 ;; (print (macroexpand-1 '(def~daoclass-linktable shop option t)))
-;; (PROGN
-;;   (DEFCLASS SHOP-2-OPTION NIL
-;;     ((SHOP-ID   :COL-TYPE INTEGER :INITARG :SHOP-ID   :INITFORM 0  :ACCESSOR SHOP-ID)
-;;      (OPTION-ID :COL-TYPE INTEGER :INITARG :OPTION-ID :INITFORM 0  :ACCESSOR OPTION-ID))
-;;     (:METACLASS DAO-CLASS))
-;;   (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'SHOP-2-OPTION)))
-;;   (EXECUTE (DAO-TABLE-DEFINITION 'SHOP-2-OPTION)))
 
 
 ;; produce incrementor closure
@@ -73,13 +61,15 @@ alter user <dbuser> with password '<dbpassword>';
 
 ;; incrementor test
 ;; (print (macroexpand-1 '(incrementor product id)))
-;; (LET ((INC-PRODUCT-ID))
-;;   (LIST
-;;     (DEFUN INCF-PRODUCT-ID ()
-;;       (INCF INC-PRODUCT-ID))
-;;     (DEFUN INIT-PRODUCT-ID (INIT-VALUE)
-;;       (SETF INC-PRODUCT-ID INIT-VALUE))))
 
+
+(defmacro get-lang-id (lang)
+  `(if (integerp ,lang)
+       lang
+       (aif (query (:select 'id :from 'lang :where (:= 'code ,lang)) :single) it (error 'lang-not-found))))
+
+;; (macroexpand-1 '(get-lang-id "ru"))
+;; (get-lang-id "ru")
 
 
 ;; produce (and re-init storage table if need) entity object
@@ -122,92 +112,49 @@ alter user <dbuser> with password '<dbpassword>';
        ,(when re-link
               `(progn
                  (def~daoclass-linktable ,name option ,re-init)
-                 (defmethod add-option ((dao-obj ,name) lang name &optional (value t))
-                   (let ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
-                         (option-id  (id (make-dao 'option :optype (symbol-name ',name)))))
-                     (make-dao   'optname  :option-id option-id :lang-id lang-id :val name)
-                     (when value
-                       (make-dao 'optvalue :option-id option-id :lang-id lang-id :val value))
+                 (defmethod make-option ((dao-obj ,name) lang name &key (optype "") (parent-id 0))
+                   (let* ((lang-id    (get-lang-id lang))
+                          (option     (make-dao 'option :lang-id lang-id :name name
+                                                :optype optype :parent-id parent-id)))
                      (query (:insert-into ',(intern (format nil "~A-2-OPTION" (symbol-name name))) :set
-                                          ',(intern (format nil "~A-ID" name)) (id dao-obj)
-                                          'option-id option-id))))
-                 (defmethod get-opts ((dao-obj ,name) lang)
-                   (let* ((lang-id    (query (:select 'id :from 'lang :where (:= 'code lang)) :single))
-                          (option-ids (mapcar #'car
-                                              (query (:select 'option.id :from ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
-                                                              :inner-join 'option
-                                                              :on (:= ',(intern (format nil "~A-2-OPTION.OPTION-ID" (symbol-name name)))
-                                                                      'option.id)
-                                                              :where (:= ',(intern (format nil "~A-ID" name))
-                                                                         (id dao-obj)))))))
-                     (loop :for item :in option-ids
-                        :when (let ((name   (query (:select 'val :from 'optname  :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single))
-                                    (value  (query (:select 'val :from 'optvalue :where (:and (:= 'lang-id lang-id) (:= 'option-id item))) :single)))
-                                (if name    (cons name value) nil))
-                        :collect it)))
-                 (defmethod get-option ((dao-obj ,name) lang name)
-                   (cdr (assoc name (get-opts dao-obj lang) :test #'equal))))))))
+                                          ',(intern (format nil "~A-ID" (symbol-name name))) (id dao-obj)
+                                          'option-id (id option)))
+                     option))
+                 (defmethod load-options ((dao-obj ,name) &key lang name optype parent-id)
+                   (let ((rs (loop
+                                :for item
+                                :in (mapcar #'car
+                                            (query (:select 'option-id
+                                                            :from  ',(intern (format nil "~A-2-OPTION" (symbol-name name)))
+                                                            :where (:= ',(intern (format nil "~A-ID" (symbol-name name))) (id dao-obj)))))
+                                :collect (initialize-instance (get-dao 'option item)))))
+                     (when lang (setf rs (remove-if-not #'(lambda (x) (equal (lang-id x) (get-lang-id lang))) rs)))
+                     (when name (setf rs (remove-if-not #'(lambda (x) (equal name (name x))) rs)))
+                     (when optype (setf rs (remove-if-not #'(lambda (x) (equal optype (optype x))) rs)))
+                     (when parent-id (setf rs (remove-if-not #'(lambda (x) (equal parent-id (parent-id x))) rs)))
+                     rs))
+                 (defmethod get-opts-val ((dao-obj ,name))
+                   (mapcar #'(lambda (option)
+                               (list
+                                (name option)
+                                (mapcar #'(lambda (optval)
+                                            (val optval))
+                                        (load-values option))))
+                           (load-options dao-obj))))))))
 
 
 ;; entity test
-;; (print (macroexpand-1 '(def~daoclass-entity product ()
-;;                         ((id                :col-type integer         :initform (incf-product-id))
-;;                          (category-id       :col-type integer         :initform 0)
-;;                          (options                                     :initform ""))
-;;                         (:keys id)
-;;                         (:incf id)
-;;                         (:re-init t)
-;;                         (:re-link t))))
+(print (macroexpand-1 '(def~daoclass-entity product ()
+                        ((id                :col-type integer         :initform (incf-product-id))
+                         (category-id       :col-type integer         :initform 0)
+                         (options                                     :initform ""))
+                        (:keys id)
+                        (:incf id)
+                        (:re-init t)
+                        (:re-link t))))
 
-;; (PROGN
-;;   (INCREMENTOR PRODUCT ID)
-;;   (DEFCLASS PRODUCT NIL
-;;     ((ID          :COL-TYPE INTEGER :INITARG :ID          :INITFORM (INCF-PRODUCT-ID) :ACCESSOR ID)
-;;      (CATEGORY-ID :COL-TYPE INTEGER :INITARG :CATEGORY-ID :INITFORM 0                 :ACCESSOR CATEGORY-ID)
-;;      (OPTIONS                       :INITARG :OPTIONS     :INITFORM ""                :ACCESSOR OPTIONS))
-;;     (:METACLASS DAO-CLASS)
-;;     (:KEYS ID))
-;;   (PROGN
-;;     (QUERY (SQL (:DROP-TABLE :IF-EXISTS 'PRODUCT)))
-;;     (EXECUTE (DAO-TABLE-DEFINITION 'PRODUCT)))
-;;   (PROGN
-;;     (DEF~DAOCLASS-LINKTABLE PRODUCT OPTION T)
-;;     (DEFMETHOD ADD-OPTION ((DAO-OBJ PRODUCT) LANG NAME &OPTIONAL (VALUE T))
-;;       (LET ((LANG-ID    (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
-;;             (OPTION-ID  (ID (MAKE-DAO 'OPTION :OPTYPE (SYMBOL-NAME 'PRODUCT)))))
-;;         (MAKE-DAO 'OPTNAME :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL NAME)
-;;         (WHEN VALUE
-;;           (MAKE-DAO 'OPTVALUE :OPTION-ID OPTION-ID :LANG-ID LANG-ID :VAL VALUE))
-;;         (QUERY (:INSERT-INTO 'PRODUCT-2-OPTION :SET
-;;                              'PRODUCT-ID (ID DAO-OBJ)
-;;                              'OPTION-ID OPTION-ID))))
-;;     (DEFMETHOD GET-OPTS ((DAO-OBJ PRODUCT) LANG)
-;;       (LET* ((LANG-ID     (QUERY (:SELECT 'ID :FROM 'LANG :WHERE (:= 'CODE LANG)) :SINGLE))
-;;              (OPTION-IDS  (MAPCAR #'CAR
-;;                                   (QUERY
-;;                                    (:SELECT 'OPTION.ID :FROM 'PRODUCT-2-OPTION
-;;                                             :INNER-JOIN 'OPTION :ON (:= 'PRODUCT-2-OPTION.OPTION-ID 'OPTION.ID)
-;;                                             :WHERE (:= 'PRODUCT-ID (ID DAO-OBJ)))))))
-;;         (LOOP :FOR ITEM :IN OPTION-IDS
-;;            :WHEN (LET ((NAME   (QUERY (:SELECT 'VAL :FROM 'OPTNAME  :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE))
-;;                        (VALUE  (QUERY (:SELECT 'VAL :FROM 'OPTVALUE :WHERE (:AND (:= 'LANG-ID LANG-ID) (:= 'OPTION-ID ITEM))) :SINGLE)))
-;;                    (IF NAME (CONS NAME VALUE) NIL))
-;;            :COLLECT IT)))
-;;     (DEFMETHOD GET-OPTION ((DAO-OBJ PRODUCT) LANG NAME)
-;;       (CDR (ASSOC NAME (GET-OPTS DAO-OBJ LANG) :TEST #'EQUAL)))))
-
-
-;; (defparameter *x* (make-dao 'product))
-;; (id *x*)
-;; (add-option *x* "ru" "qwe" "asd")
-;; (add-option *x* "ru" "qwe123" "asd345")
-;; (add-option *x* "en" "qwe123asd" "asd345qwe")
-;; (get-opts *x* "en")
-;; (get-opts *x* "ru")
-;; (get-option *x* "ru" "qwe")
 
 ;;  LANG
-
 (def~daoclass-entity lang ()
   ((id                :col-type integer         :initform (incf-lang-id))
    (code              :col-type string          :initform ""))
@@ -216,44 +163,47 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-
-;;  OPTNAME
-
-(def~daoclass-entity optname ()
-  ((option-id         :col-type integer         :initform 0)
+;;  OPTVAL
+(def~daoclass-entity optval ()
+  ((id                :col-type integer         :initform (incf-optval-id))
+   (option-id         :col-type integer         :initform 0)
    (lang-id           :col-type integer         :initform 0)
    (val               :col-type string          :initform ""))
-  (:re-init t))
-
-
-;;  OPTVALUE
-
-(def~daoclass-entity optvalue ()
-  ((option-id         :col-type integer         :initform 0)
-   (lang-id           :col-type integer         :initform 0)
-   (val               :col-type string          :initform "")
-   (product-id        :col-type integer         :initform 0))
-  (:re-init t))
-
-
-;;  OPTION
-
-(def~daoclass-entity option ()
-  ((id                :col-type integer         :initform (incf-option-id))
-   (parent-id         :col-type integer         :initform 0)
-   (optype            :col-type string          :initform ""))
   (:keys id)
   (:incf id)
   (:re-init t))
 
+;;  OPTION
+(def~daoclass-entity option ()
+  ((id                :col-type integer         :initform (incf-option-id))
+   (parent-id         :col-type integer         :initform 0)
+   (optype            :col-type string          :initform "")
+   (lang-id           :col-type integer         :initform 0)
+   (name              :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t))
+
+(defmethod make-value ((option-obj option) lang val)
+  (make-dao 'optval
+            :option-id (id option-obj)
+            :lang-id (get-lang-id lang)
+            :val val))
+
+(defmethod load-values ((option-obj option))
+  (loop :for item :in (query-dao 'optval (:select '* :from 'optval :where (:= 'option-id (id option-obj))))
+     :collect (initialize-instance item)))
 
 ;; write to lang & lang_2_option
 (defparameter *ru* (make-dao 'lang :code "ru"))
-(add-option *ru* "ru" "name" "Русский")
+(make-option *ru* "ru" "Русский")
 (defparameter *en* (make-dao 'lang :code "en"))
-(add-option *en* "ru" "name" "Английский")
-(add-option *en* "en" "name" "English")
-(add-option *ru* "en" "name" "Russian")
+(make-option *en* "en" "English")
+(make-option *ru* "en" "Russian")
+(make-option *en* "ru" "Английский")
+
+(encode-json-to-string (load-options *en* :lang "en"))
+(load-options *ru*)
 
 
 ;; COUNTRY
@@ -266,12 +216,34 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
+
 (defparameter *rus* (make-dao 'country :code "rus"))
-(add-option *rus* "ru" "name" "Россия")
-(add-option *rus* "en" "name" "Russia")
+(let ((opt (make-option *rus* 0 "name")))
+  (make-value opt "ru" "Россия")
+  (make-value opt "en" "Russia"))
+
 (defparameter *usa* (make-dao 'country :code "usa"))
-(add-option *usa* "ru" "name" "США")
-(add-option *usa* "en" "name" "USA")
+(let ((opt (make-option *usa* 0 "name")))
+  (make-value opt "ru" "США")
+  (make-value opt "en" "USA"))
+
+
+(defun get-all-opt-val (dao-obj &key (optname-func #'identity) (optvalue-func #'identity))
+  (loop :for item :in (load-options dao-obj) :collect
+     (list (funcall optname-func item) (mapcar optvalue-func (load-values item)))))
+
+(defun get-all-entityes-opt-val (list-of-entityes &key (entity-func #'identity) (optname-func #'identity) (optvalue-func #'identity))
+  (loop :for item :in list-of-entityes :collect
+     (list (funcall entity-func item)
+           (get-all-opt-val item :optname-func optname-func :optvalue-func optvalue-func))))
+
+
+;; (get-all-entityes-opt-val (select-dao 'country)
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
+
+;; (get-all-entityes-opt-val (select-dao 'country))
 
 
 ;; CITY
@@ -285,17 +257,26 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-
-
 (defparameter *spb* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "spb"))
-(add-option *spb* "ru" "name" "Санкт-Петербург")
-(add-option *spb* "en" "name" "St.Peterburg")
+(let ((opt (make-option *spb* 0 "name")))
+  (make-value opt "ru" "Санкт-Петербург")
+  (make-value opt "en" "St.Peterburg"))
+
 (defparameter *mos* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "mos"))
-(add-option *mos* "ru" "name" "Москва")
-(add-option *mos* "en" "name" "Moscow")
-(defparameter *jfk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "jfk"))
-(add-option *jfk* "ru" "name" "Нью-Йорк")
-(add-option *jfk* "en" "name" "New York")
+(let ((opt (make-option *mos* 0 "name")))
+  (make-value opt "ru" "Москва")
+  (make-value opt "en" "Moscow"))
+
+(defparameter *nyk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "nyk"))
+(let ((opt (make-option *nyk* 0 "name")))
+  (make-value opt "ru" "Нью-Йорк")
+  (make-value opt "en" "New York"))
+
+;; (get-all-entityes-opt-val (select-dao 'city)
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
+
 
 
 ;; SUBWAY
@@ -309,12 +290,20 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-(defparameter *avto* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avto"))
-(add-option *avto* "ru" "name" "Автово")
-(add-option *avto* "en" "name" "Avtovo")
-(defparameter *narv* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narv"))
-(add-option *narv* "ru" "name" "Нарвская")
-(add-option *narv* "en" "name" "Narvskaya")
+(defparameter *avtovo* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avtovo"))
+(let ((opt (make-option *avtovo* 0 "name")))
+  (make-value opt "ru" "Автово")
+  (make-value opt "en" "Avtovo"))
+
+(defparameter *narvskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narvskaya"))
+(let ((opt (make-option *narvskaya* 0 "name")))
+  (make-value opt "ru" "Нарвская")
+  (make-value opt "en" "Narvskaya"))
+
+;; (get-all-entityes-opt-val (select-dao 'subway)
+;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :optname-func #'(lambda (option) (name option))
+;;                           :optvalue-func #'(lambda (optval) (val optval)))
 
 
 ;;  SHOP
@@ -337,7 +326,7 @@ alter user <dbuser> with password '<dbpassword>';
    (rating-count      :col-type integer         :initform 0)
    (comment-count     :col-type integer         :initform 0)
    (worktime          :col-type string          :initform ""))
-  ;; name description phone subways street building
+  ;; + name description phone subways street building
   (:keys id)
   (:incf id)
   (:re-init t)
@@ -345,11 +334,6 @@ alter user <dbuser> with password '<dbpassword>';
 
 (def~daoclass-linktable shop subway t)
 
-
-;; decoded time
-(multiple-value-bind (second minute hour date month year)
-    (decode-universal-time (get-universal-time))
-  (format nil "~2,'0d.~2,'0d.~d" date month year))
 
 (defparameter *makarena*
   (make-dao
@@ -368,39 +352,68 @@ alter user <dbuser> with password '<dbpassword>';
    :city-code (code *spb*)
    :rating 3.34
    :rating-count 96
-   :comment-count 89
-   ;; :worktime '((("12:00" "23:00"))
-   ;;             (("08:00" "12:00")("15:00" "23:00"))
-   ;;             nil
-   ;;             (("08:00" "12:00")("15:00" "22:00"))
-   ;;             nil
-   ;;             nil
-   ;;             (("11:00" "23:00")))
-   ))
-(add-option *makarena* "ru" "name" "Макарена")
-(add-option *makarena* "en" "name" "Makarena")
-;; name description phone subways street building
-(add-option *makarena* "ru" "descr" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
-(add-option *makarena* "en" "descr" "we are ...")
-(add-option *makarena* "ru" "phone-main" "+78129063900")
-(add-option *makarena* "ru" "phone-delivery" "+78129063900")
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avto*)))
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narv*)))
-(add-option *makarena* "ru" "street" "Московский проспект")
-(add-option *makarena* "en" "street" "Moscowsky prospect")
-(add-option *makarena* "ru" "building" "206")
-(add-option *makarena* "en" "building" "206")
-(add-option *makarena* "en" "building" "206")
+   :comment-count 89))
 
- ;; :optional (make-instance
- ;;            'optional
- ;;            :kitchen '("мексиканская" "итальянская")
- ;;            :service '("завтрак" "ланч")
- ;;            :additionally '("кальян")
- ;;            :children '("меню" "няня" "детская комната")
- ;;            :music '("живая")
- ;;            :view '("панорамный"))
- ;; ))
+(let ((opt (make-option *makarena* 0 "name")))
+  (make-value opt "ru" "Makarena")
+  (make-value opt "en" "Makarena"))
+
+(let ((opt (make-option *makarena* 0 "description")))
+  (make-value opt "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+  (make-value opt "en" "we are ..."))
+
+(let* ((opt (make-option *makarena* 0 "phone"))
+       (opt-id (id opt)))
+  (let ((opt (make-option *makarena* 0 "phone-main" :parent-id opt-id)))
+    (make-value opt 0 "+78129063900"))
+  (let ((opt (make-option *makarena* 0 "phone-delivery" :parent-id opt-id)))
+    (make-value opt 0 "+78129063900")))
+
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avtovo*)))
+(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narvskaya*)))
+
+(let* ((opt (make-option *makarena* 0 "street")))
+  (make-value opt "ru" "Московский проспект")
+  (make-value opt "en" "Moscowsky prospect"))
+
+(let* ((opt (make-option *makarena* 0 "building")))
+  (make-value opt "ru" "дом 206")
+  (make-value opt "en" "house 206"))
 
 
-(get-opts *makarena* "ru")
+(print (get-all-entityes-opt-val (select-dao 'shop)
+                                 :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
+                                 :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
+                                 :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
+
+
+(((:SHOP 1 "http://macarenabar.ru")
+  (((:OPT 10 0 "name")
+    ((:VAL 1 "Makarena")
+     (:VAL 2 "Makarena")))
+   ((:OPT 11 0 "description")
+    ((:VAL 1 "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+     (:VAL 2 "we are ...")))
+   ((:OPT 12 0 "phone") NIL)
+   ((:OPT 13 12 "phone-main")
+    ((:VAL 0 "+78129063900")))
+   ((:OPT 14 12 "phone-delivery")
+    ((:VAL 0 "+78129063900")))
+   ((:OPT 17 0 "street")
+    ((:VAL 1 "Московский проспект")
+     (:VAL 2 "Moscowsky prospect")))
+   ((:OPT 18 0 "building")
+    ((:VAL 1 "дом 206")
+     (:VAL 2 "house 206"))))))
+
+;; TODO ::: SUBWAYS
+
+;; :optional (make-instance
+;;            'optional
+;;            :kitchen '("мексиканская" "итальянская")
+;;            :service '("завтрак" "ланч")
+;;            :additionally '("кальян")
+;;            :children '("меню" "няня" "детская комната")
+;;            :music '("живая")
+;;            :view '("панорамный"))
+;; ))
