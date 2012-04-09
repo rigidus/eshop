@@ -357,21 +357,17 @@ alter user <dbuser> with password '<dbpassword>';
 (let ((opt (make-option *makarena* 0 "name")))
   (make-value opt "ru" "Makarena")
   (make-value opt "en" "Makarena"))
-
 (let ((opt (make-option *makarena* 0 "description")))
   (make-value opt "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
   (make-value opt "en" "we are ..."))
-
 (let* ((opt (make-option *makarena* 0 "phone"))
        (opt-id (id opt)))
   (let ((opt (make-option *makarena* 0 "phone-main" :parent-id opt-id)))
     (make-value opt 0 "+78129063900"))
   (let ((opt (make-option *makarena* 0 "phone-delivery" :parent-id opt-id)))
     (make-value opt 0 "+78129063900")))
-
 (query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avtovo*)))
 (query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narvskaya*)))
-
 (let* ((opt (make-option *makarena* 0 "street")))
   (make-value opt "ru" "Московский проспект")
   (make-value opt "en" "Moscowsky prospect"))
@@ -379,8 +375,6 @@ alter user <dbuser> with password '<dbpassword>';
 (let* ((opt (make-option *makarena* 0 "building")))
   (make-value opt "ru" "дом 206")
   (make-value opt "en" "house 206"))
-
-
 (let* ((opt (make-option *makarena* 0 "optional"))
        (opt-id (id opt)))
   (let ((opt (make-option *makarena* 0 "kitchen" :parent-id opt-id)))

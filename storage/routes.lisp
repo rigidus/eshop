@@ -106,7 +106,13 @@
                  (aif (hunchentoot:get-parameter "lang") it "ru")))))
 
 
-(defun get-restaurants (&key country_id city_id subway_id age age_type latitude longitude distance limit offset sort sort_type lang)
+(defun get-restaurants (&key (city "spb") subway_id age age_type latitude longitude distance limit offset sort sort_type lang)
+  (let ((city-id (if (typep city 'integer)
+                     city
+                     (let ((dao-obj-lst (select-dao 'city (:= 'code city))))
+                       (if (null dao-obj-lst)
+                           (return-from get-subways "city not found")
+                           (id (car dao-obj-lst)))))))
 
 
 
