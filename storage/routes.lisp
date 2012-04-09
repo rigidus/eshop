@@ -113,11 +113,10 @@
                        (if (null dao-obj-lst)
                            (return-from get-subways "city not found")
                            (id (car dao-obj-lst)))))))
+    'stub))
 
-
-
-
-
+(restas:define-route api-lang ("/api.php")
+  'stub)
 
 
 (restas:define-route api-lang ("/api.php")
@@ -139,12 +138,6 @@
                      :city (parse-integer (hunchentoot:get-parameter "city_id"))
                      :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))
           (t "disp-error"))))
-
-
-
-
-
-
 
 
 ;; (restas:define-route resto-list ("/restaurants")
