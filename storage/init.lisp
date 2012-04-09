@@ -144,8 +144,8 @@
 ;;                   :comment_count 1)))
 
 
-;; ;; start
-;; (restas:start '#:eshop.storage :port 8082)
-;; (restas:debug-mode-on)
-;; ;; (restas:debug-mode-off)
-;; (setf hunchentoot:*catch-errors-p* t)
+;; start
+(restas:start '#:eshop.storage :port 8082)
+(restas:debug-mode-on)
+;; (restas:debug-mode-off)
+(setf hunchentoot:*catch-errors-p* t)
