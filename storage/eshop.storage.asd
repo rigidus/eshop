@@ -21,6 +21,6 @@
                  (:file "lib")
                  (:file "classes")
                  (:file "render")
-                 (:file "routes")
+                 ;; (:file "routes")
                  (:file "init")
                  ))

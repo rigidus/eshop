@@ -81,11 +81,11 @@
 
 (defun get-subways (&key (city "spb") (lang "ru"))
   (let ((city-id (if (typep city 'integer)
-                        city
-                        (let ((dao-obj-lst (select-dao 'city (:= 'code city))))
-                          (if (null dao-obj-lst)
-                              (return-from get-subways "city not found")
-                              (id (car dao-obj-lst)))))))
+                     city
+                     (let ((dao-obj-lst (select-dao 'city (:= 'code city))))
+                       (if (null dao-obj-lst)
+                           (return-from get-subways "city not found")
+                           (id (car dao-obj-lst)))))))
     (loop :for item :in (with-connection *db-spec* (select-dao 'subway (:= 'city-id city-id))) :collect
        (list
         (cons 'id   (id item))
@@ -101,9 +101,9 @@
   (format nil "{\"response\": ~A}"
           (json:encode-json-to-string
            (get-subways :city
-                 (aif (hunchentoot:get-parameter "city") it "spb")
-                 :lang
-                 (aif (hunchentoot:get-parameter "lang") it "ru")))))
+                        (aif (hunchentoot:get-parameter "city") it "spb")
+                        :lang
+                        (aif (hunchentoot:get-parameter "lang") it "ru")))))
 
 
 (defun get-restaurants (&key (city "spb") subway_id age age_type latitude longitude distance limit offset sort sort_type lang)
