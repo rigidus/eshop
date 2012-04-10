@@ -320,7 +320,7 @@ alter user <dbuser> with password '<dbpassword>';
    (latitude          :col-type float           :initform 0.0)
    (longitude         :col-type float           :initform 0.0)
    (postal-code       :col-type string          :initform 0.0)
-   (city-id           :col-type float           :initform 0.0)
+   (city-id           :col-type integer         :initform 0)
    (city-code         :col-type string          :initform "")
    (rating            :col-type float           :initform 0.0)
    (rating-count      :col-type integer         :initform 0)
@@ -355,7 +355,7 @@ alter user <dbuser> with password '<dbpassword>';
    :comment-count 89))
 
 (let ((opt (make-option *makarena* 0 "name")))
-  (make-value opt "ru" "Makarena")
+  (make-value opt "ru" "Макарена")
   (make-value opt "en" "Makarena"))
 (let ((opt (make-option *makarena* 0 "description")))
   (make-value opt "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
