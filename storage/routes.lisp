@@ -14,10 +14,10 @@
 (restas:define-route main ("/")
   (format nil "~{~A<br/>~}"
           (list
-           "/lang? [lang=ru]"
-           "/country? [lang=ru]"
-           "/city? [country=rus] & [lang=ru]"
-           "/subway? [city=spb] & [lang=ru]"
+           "/lang [lang=ru]"
+           "/country [lang=ru]"
+           "/city [country=rus] [lang=ru]"
+           "/subway [city=spb] [lang=ru]"
            )))
 
 
@@ -32,7 +32,7 @@
 ;; (json:encode-json-to-string (get-languages :lang "en"))
 
 (restas:define-route lang ("/lang")
-  "/lang? [lang=ru]"
+  "/lang [lang=ru]"
   (format nil "{\"response\": ~A}" (json:encode-json-to-string (get-languages :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))
 
 
@@ -48,7 +48,7 @@
 ;; (json:encode-json-to-string (get-countryes))
 
 (restas:define-route country ("/country")
-  "/country? [lang=ru]"
+  "/country [lang=ru]"
   (format nil "{\"response\": ~A}" (json:encode-json-to-string (get-countryes :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))
 
 
@@ -71,7 +71,7 @@
 ;; (get-cityes :country "usa" :lang "en")
 
 (restas:define-route city ("/city")
-  "/city? [country=rus] & [lang=ru]"
+  "/city [country=rus] [lang=ru]"
   (format nil "{\"response\": ~A}"
           (json:encode-json-to-string
            (get-cityes :country (aif (hunchentoot:get-parameter "country") it "rus")
@@ -97,7 +97,7 @@
 ;; (json:encode-json-to-string (get-subways :city "spbs" :lang "en"))
 
 (restas:define-route subway ("/subway")
-  "/subway? [city=spb] & [lang=ru]"
+  "/subway [city=spb] [lang=ru]"
   (format nil "{\"response\": ~A}"
           (json:encode-json-to-string
            (get-subways :city
@@ -131,13 +131,7 @@
     rs))
 
 
-(defmethod to-json (lang)
-  (list (cons :id 1)))
-
-
-
-(print (let ((lang "ru")
-      (item *makarena*))
+(defun get-shop (item &key (lang "ru"))
   (list (cons :id (id item))
         (cons :name (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                           (equal (lang-id x) (get-lang-id lang)))
@@ -153,15 +147,15 @@
         (list :capacity (cons :indoor (indoor item)) (cons :outdoor (outdoor item)))
         `(:phone ,@(aif (load-options item :name "phone")
                         (mapcar #'(lambda (x)
-                                            (cons (name x) (val (car (load-values x)))))
-                                        (load-options item :parent-id (id (car it))))))
+                                    (cons (name x) (val (car (load-values x)))))
+                                (load-options item :parent-id (id (car it))))))
         `(:address ,(cons :latitude (latitude item))
                    ,(cons :longitude (longitude item))
                    ,(cons :distance "calculate value")
                    ,(cons :postal-code (postal-code item))
                    ,(cons :city-id (city-id item))
                    ,(cons :city-code (city-code item))
-                   ;(:SUBWAY--ID . 1)
+                                        ;(:SUBWAY--ID . 1)
                    ,(cons :subway (list (mapcar #'(lambda (subway)
                                                     (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                                                           (equal (lang-id x) (get-lang-id lang)))
@@ -174,7 +168,7 @@
                                                                         (equal (lang-id x) (get-lang-id lang)))
                                                                     (load-values (car (load-options item :name "street")))))))
                    ,(cons :building  (car (mapcar #'val (remove-if-not #'(lambda (x)
-                                                                            (equal (lang-id x) (get-lang-id lang)))
+                                                                           (equal (lang-id x) (get-lang-id lang)))
                                                                        (load-values (car (load-options item :name "building"))))))))
         `(:estimate ,(cons :rating (rating item))
                     ,(cons :rating-count (rating-count item))
@@ -183,41 +177,19 @@
         ;;            (("08:00:00" "12:00:00") ("15:00:00" "23:00:00")) NIL
         ;;            (("08:00:00" "12:00:00") ("15:00:00" "22:00:00")) NIL NIL
         ;;            (("11:00:00" "23:00:00"))))
-        )))
+        ))
 
 
+(restas:define-route restaurant ("/restaurant")
+  "/restaurant [lang=ru]"
+  (format nil "{\"response\": ~A}"
+          (json:encode-json-to-string
+           (loop :for item :in (select-dao 'shop) :collect
+              (get-shop *makarena* :lang (aif (hunchentoot:get-parameter "lang") it "ru"))))))
+
+(restas:define-route restaurant-id ("/restaurant/:code")
 
 
-
-((:ID . 1) (:NAME . "Name")
- (:DESCRIPTION . "Description")
- (:OPENING--DATE . 1310786880)
- (:PRICE . 3)
- (:LOGO . "/images/restaurnt/1.jpg")
- (:PHOTO . "/images/restaurnt/1.jpg")
- (:SITE . "http://macarenabar.ru")
- (:CAPACITY (:INDOOR . "162")
-            (:OUTDOOR . "40"))
- (:PHONE (:MAIN . "+78121112233")
-         (:FAX . "")
-         (:DELIVERY . "+78123332211")
-         (:BANQUET . "+78123332211"))
- (:ADDRESS (:LATITUDE . 59.8236)
-           (:LONGITUDE . 30.3373)
-           (:DISTANCE . 10.4142)
-           (:POSTAL--CODE . "307660")
-           (:COUNTRY--ID . 1)
-           (:CITY--ID . 2)
-           (:SUBWAY--ID . 1)
-           (:STREET . "Good street")
-           (:BUILDING . "128"))
- (:ESTIMATE (:RATING . 3.34)
-            (:RATING--COUNT . 96)
-            (:COMMENT--COUNT . 89))
- (:WORKTIME (("12:00:00" "23:00:00"))
-            (("08:00:00" "12:00:00") ("15:00:00" "23:00:00")) NIL
-            (("08:00:00" "12:00:00") ("15:00:00" "22:00:00")) NIL NIL
-            (("11:00:00" "23:00:00"))))
 
 ;; haversinus
 ;; http://js-php.ru/web-development/distance-from-dot-to-dot/

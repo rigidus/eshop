@@ -310,6 +310,7 @@ alter user <dbuser> with password '<dbpassword>';
 
 (def~daoclass-entity shop ()
   ((id                :col-type integer         :initform (incf-shop-id))
+   (code              :col-type string          :initform "")
    (opening-date      :col-type bigint          :initform 0)
    (price             :col-type integer         :initform 0)
    (logo              :col-type string          :initform "")
@@ -338,6 +339,7 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *makarena*
   (make-dao
    'shop
+   :code "makarena"
    :opening-date (get-universal-time)
    :price 3
    :logo "/images/restaurant/1.jpg"
@@ -354,62 +356,67 @@ alter user <dbuser> with password '<dbpassword>';
    :rating-count 96
    :comment-count 89))
 
-(let ((opt (make-option *makarena* 0 "name")))
-  (make-value opt "ru" "Макарена")
-  (make-value opt "en" "Makarena"))
-(let ((opt (make-option *makarena* 0 "description")))
-  (make-value opt "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
-  (make-value opt "en" "we are ..."))
-(let* ((opt (make-option *makarena* 0 "phone"))
-       (opt-id (id opt)))
-  (let ((opt (make-option *makarena* 0 "phone-main" :parent-id opt-id)))
-    (make-value opt 0 "+78129063900"))
-  (let ((opt (make-option *makarena* 0 "phone-delivery" :parent-id opt-id)))
-    (make-value opt 0 "+78129063900")))
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *avtovo*)))
-(query (:insert-into 'shop_2_subway :set 'shop-id (id *makarena*) 'subway_id (id *narvskaya*)))
-(let* ((opt (make-option *makarena* 0 "street")))
-  (make-value opt "ru" "Московский проспект")
-  (make-value opt "en" "Moscowsky prospect"))
+(defmacro mv (lang val)
+  `(make-value opt ,lang ,val))
 
-(let* ((opt (make-option *makarena* 0 "building")))
-  (make-value opt "ru" "дом 206")
-  (make-value opt "en" "house 206"))
-(let* ((opt (make-option *makarena* 0 "optional"))
-       (opt-id (id opt)))
-  (let ((opt (make-option *makarena* 0 "kitchen" :parent-id opt-id)))
-    (make-value opt "ru" "мексиканская")
-    (make-value opt "en" "mexicano")
-    (make-value opt "ru" "итальянская")
-    (make-value opt "en" "italiano"))
-  (let ((opt (make-option *makarena* 0 "service" :parent-id opt-id)))
-    (make-value opt "ru" "завтрак")
-    (make-value opt "en" "breakfast")
-    (make-value opt "ru" "ланч")
-    (make-value opt "en" "lunch"))
-  (let ((opt (make-option *makarena* 0 "additionally" :parent-id opt-id)))
-    (make-value opt "ru" "кальян")
-    (make-value opt "en" "hookah"))
-  (let ((opt (make-option *makarena* 0 "children" :parent-id opt-id)))
-    (make-value opt "ru" "детское меню")
-    (make-value opt "ru" "няня")
-    (make-value opt "ru" "детская комната")
-    (make-value opt "en" "children menu")
-    (make-value opt "en" "babysitter")
-    (make-value opt "en" "children room"))
-  (let ((opt (make-option *makarena* 0 "music" :parent-id opt-id)))
-    (make-value opt "ru" "живая")
-    (make-value opt "en" "live"))
-  (let ((opt (make-option *makarena* 0 "view" :parent-id opt-id)))
-    (make-value opt "ru" "панорамный")
-    (make-value opt "en" "panoramic")))
+(defmacro mo (dao lang name parent-id &body body)
+  `(let* ((opt (make-option ,dao ,lang ,name :parent-id ,parent-id))
+          (po (id opt)))
+     ,@(loop :for item :in body :collect item)))
+
+(let ((i *makarena*))
+  (mo i 0 "name" 0
+      (mv "ru" "Макарена")
+      (mv "en" "Makarena"))
+  (mo i 0 "description" 0
+      (mv "ru" "Мы очень любим вкусно есть, вкусно пить и душевно общаться. Этим мы занимались последние несколько лет в 7 странах и более чем в 300 ресторанах. Все эти годы мы не просто наслаждались, мы вынашивали наш проект. Проект, в котором объединено все самое вкусное и интересное, что нам самим удалось попробовать в Испании, Италии, Португалии, Мексике, странах Латинской Америки и Средней Азии. Мы рады, что теперь у нас есть возможность поделиться всем этим с Вами в Санкт-Петербурге (СПб).")
+      (mv "en" "we are ..."))
+  (mo i 0 "phone" 0
+      (mo i 0 "phone-main" po
+          (mv 0 "+78129063900"))
+      (mo i 0 "phone-delivery" po
+          (mv 0 "+78129063900")))
+  (query (:insert-into 'shop_2_subway :set 'shop-id (id i) 'subway_id (id *avtovo*)))
+  (query (:insert-into 'shop_2_subway :set 'shop-id (id i) 'subway_id (id *narvskaya*)))
+  (mo i 0 "street" 0
+      (mv "ru" "Московский проспект")
+      (mv "en" "Moscowsky prospect"))
+  (mo i 0 "building" 0
+      (mv "ru" "дом 206")
+      (mv "en" "house 206"))
+  (mo i 0 "optional" 0
+      (mo i 0 "kitchen" po
+          (mv "ru" "мексиканская")
+          (mv "en" "mexicano")
+          (mv "ru" "итальянская")
+          (mv "en" "italiano"))
+      (mo i 0 "service" po
+          (mv "ru" "завтрак")
+          (mv "en" "breakfast")
+          (mv "ru" "ланч")
+          (mv "en" "lunch"))
+      (mo i 0 "additionally" po
+          (mv "ru" "кальян")
+          (mv "en" "hookah"))
+      (mo i 0 "children" po
+          (mv "ru" "детское меню")
+          (mv "ru" "няня")
+          (mv "ru" "детская комната")
+          (mv "en" "children menu")
+          (mv "en" "babysitter")
+          (mv "en" "children room"))
+      (mo i 0 "music" po
+          (mv "ru" "живая")
+          (mv "en" "live"))
+      (mo i 0 "view" po
+          (mv "ru" "панорамный")
+          (mv "en" "panoramic"))))
 
 
-
-;; (print (get-all-entityes-opt-val (select-dao 'shop)
-;;                                  :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
-;;                                  :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
-;;                                  :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
+(print (get-all-entityes-opt-val (select-dao 'shop)
+                                 :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
+                                 :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
+                                 :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
 
 
 ;; (((:SHOP 1 "http://macarenabar.ru")
