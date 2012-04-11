@@ -25,7 +25,7 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *db-pass* "resto1111")
 (defparameter *db-serv* "localhost")
 (defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
-(connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
+;; (connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
 ;; (disconnect-toplevel)
 
 ;; produce (and re-init storage table if need) linktable object
@@ -413,10 +413,10 @@ alter user <dbuser> with password '<dbpassword>';
           (mv "en" "panoramic"))))
 
 
-(print (get-all-entityes-opt-val (select-dao 'shop)
-                                 :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
-                                 :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
-                                 :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
+;; (print (get-all-entityes-opt-val (select-dao 'shop)
+;;                                  :entity-func #'(lambda (shop) (list :shop (id shop) (site shop)))
+;;                                  :optname-func #'(lambda (option) (list :opt (id option) (parent-id option) (name option)))
+;;                                  :optvalue-func #'(lambda (optval) (list :val (lang-id optval) (val optval)))))
 
 
 ;; (((:SHOP 1 "http://macarenabar.ru")
@@ -463,6 +463,65 @@ alter user <dbuser> with password '<dbpassword>';
 ;;     ((:VAL 1 "панорамный")
 ;;      (:VAL 2 "panoramic"))))))
 
-;; TODO ::: SUBWAYS
-
 ;; (query-dao 'subway "SELECT * FROM subway WHERE id IN (SELECT subway_id FROM shop_2_subway  WHERE shop_id = 1)")
+
+
+;; CATEGORY
+
+(def~daoclass-entity category ()
+  ((id                :col-type integer         :initform (incf-category-id))
+   (parent-id         :col-type integer         :initform 0)
+   (image             :col-type string          :initform "")
+   (code              :col-type string          :initform ""))
+  (:keys id)
+  (:incf id)
+  (:re-init t)
+  (:re-link t))
+
+(def~daoclass-linktable shop category t)
+
+(defparameter *cold-dishes*
+  (make-dao
+   'category
+   :code "cold-dishes"))
+
+(let ((i *cold-dishes*))
+  (mo i 0 "name" 0
+    (mv "ru" "Холодные закуски")
+    (mv "en" "Cold dishes")))
+
+(defparameter *hot-dishes*
+  (make-dao
+   'category
+   :code "hot-dishes"))
+
+(let ((i *hot-dishes*))
+  (mo i 0 "name" 0
+    (mv "ru" "Горячие блюда")
+    (mv "en" "Hot dishes")))
+
+
+(query (:insert-into 'shop_2_category :set 'shop-id (id *makarena*) 'category_id (id *cold-dishes*)))
+(query (:insert-into 'shop_2_category :set 'shop-id (id *makarena*) 'category_id (id *hot-dishes*)))
+
+
+;; PRODUCT
+
+(def~daoclass-entity product ()
+  ((id                :col-type integer         :initform (incf-product-id))
+   (code              :col-type string          :initform "")
+   (price             :col-type float           :initform 0.0)
+   (photo-small       :col-type string          :initform "")
+   (photo-big         :col-type string          :initform "")
+   (delivery          :col-type integer         :initform 0)
+   (rating            :col-type float           :initform 0.0)
+   (rating_count      :col-type integer         :initform 0)
+   (comment_count     :col-type integer         :initform 0))
+  (:keys id)
+  (:incf id)
+  (:re-init t)
+  (:re-link t))
+
+(def~daoclass-linktable shop product t)
+(def~daoclass-linktable category product t)
+

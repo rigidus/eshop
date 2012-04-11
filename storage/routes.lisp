@@ -133,6 +133,7 @@
 
 (defun get-shop (item &key (lang "ru"))
   (list (cons :id (id item))
+        (cons :code (code item))
         (cons :name (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                           (equal (lang-id x) (get-lang-id lang)))
                                                       (load-values (car (load-options item :name "name")))))))
@@ -156,14 +157,14 @@
                    ,(cons :city-id (city-id item))
                    ,(cons :city-code (city-code item))
                                         ;(:SUBWAY--ID . 1)
-                   ,(cons :subway (list (mapcar #'(lambda (subway)
+                   ,(cons :subway (mapcar #'(lambda (subway)
                                                     (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                                                           (equal (lang-id x) (get-lang-id lang)))
                                                                                       (load-values (car (load-options subway :name "name")))))))
                                                 (query-dao
                                                  'subway
                                                  (format nil "SELECT * FROM subway WHERE id IN (SELECT subway_id FROM shop_2_subway  WHERE shop_id = ~A)"
-                                                         (id item))))))
+                                                         (id item)))))
                    ,(cons :street (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                                         (equal (lang-id x) (get-lang-id lang)))
                                                                     (load-values (car (load-options item :name "street")))))))
@@ -185,12 +186,79 @@
   (format nil "{\"response\": ~A}"
           (json:encode-json-to-string
            (loop :for item :in (select-dao 'shop) :collect
-              (get-shop *makarena* :lang (aif (hunchentoot:get-parameter "lang") it "ru"))))))
+              (get-shop item :lang (aif (hunchentoot:get-parameter "lang") it "ru"))))))
 
 (restas:define-route restaurant-id ("/restaurant/:code")
+  (format nil "{\"response\": ~A}"
+          (json:encode-json-to-string
+           (aif (car (select-dao 'shop (:= 'code code)))
+                (get-shop it :lang (aif (hunchentoot:get-parameter "lang") it "ru"))))))
 
 
 
+(defun get-category (item &key (lang "ru"))
+  (list (cons :id (id item))
+        (cons :code (code item))
+        (cons :image (image item))
+        (cons :parent (aif (get-dao 'category (parent-id item))
+                           (code it)
+                           nil))
+        (cons :name (car (mapcar #'val (remove-if-not #'(lambda (x)
+                                                          (equal (lang-id x) (get-lang-id lang)))
+                                                      (load-values (car (load-options item :name "name")))))))
+        (cons :subcategoryes (mapcar #'code (select-dao 'category (:= 'parent-id (id item)))))))
+
+;; (get-category *hot-dishes*)
+
+(restas:define-route category ("/category")
+  (let ((rs (aif (hunchentoot:get-parameter "restaurant")
+                 ;; isset parameter restaurant
+                 (aif (select-dao 'shop (:= 'code it))
+                      (query-dao 'category
+                                 (format nil "SELECT * FROM category WHERE id IN (SELECT category_id FROM shop_2_category WHERE shop_id = ~A)"
+                                         (id (car it)))))
+                 ;; no parameter restaurant
+                 (select-dao 'category))))
+    (format nil "{\"response\": ~A}"
+            (json:encode-json-to-string
+             (loop :for item :in rs :collect (get-category item :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))))
+
+;; todo - завершить здесь представление
+(defun get-product (item &key (lang "ru"))
+  (list (cons :id (id item))
+        (cons :code (code item))
+        (cons :image (image item))
+        (cons :parent (aif (get-dao 'category (parent-id item))
+                           (code it)
+                           nil))
+        (cons :name (car (mapcar #'val (remove-if-not #'(lambda (x)
+                                                          (equal (lang-id x) (get-lang-id lang)))
+                                                      (load-values (car (load-options item :name "name")))))))
+        (cons :subcategoryes (mapcar #'code (select-dao 'category (:= 'parent-id (id item)))))))
+
+
+;; todo - оттестировать
+(restas:define-route dish ("/dish")
+  (let ((err) (rs))
+    (aif (hunchentoot:get-parameter "restaurant")
+         ;; isset parameter restaurant
+         (aif (select-dao 'shop (:= 'code it))
+              (setf rs (append rs (query (:select 'shop_id :from 'shop_2_product :where (:= 'shop_id (id (car it)))))))
+              (push "restaurant not found" err)))
+    (aif (hunchentoot:get-parameter "category")
+         ;; isset parameter restaurant
+         (aif (select-dao 'category (:= 'code it))
+              (setf rs (append rs (query (:select 'product_id :from 'category_2_product :where (:= 'category_id (id (car it)))))))
+              (push "category not found" err)))
+    (when err
+      (return-from dish (format nil "{\"errors\": ~A}" (json:encode-json-to-string err))))
+    (format nil "{\"response\": ~A}"
+            (json:encode-json-to-string
+             (loop :for item :in (query-dao 'product (format nil "SELECT * FROM product WHERE id IN (~{~A~^, ~})" (remove-duplicates rs)))
+                :collect (get-product item :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))))
+
+
+;; todo - оттестировать и интегрировать расчет расстояний в сферических координатах
 ;; haversinus
 ;; http://js-php.ru/web-development/distance-from-dot-to-dot/
 ;; lat1=deg2rad(lat1);
@@ -233,113 +301,4 @@
                      :city (parse-integer (hunchentoot:get-parameter "city_id"))
                      :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))
           (t "disp-error"))))
-
-
-;; (restas:define-route resto-list ("/restaurants")
-;;   (let ((rs)
-;;         (lang (aif (hunchentoot:get-parameter "lang") it "ru")))
-;;     (maphash #'(lambda (k v)
-;;                  (push (make-instance
-;;                         'resto~shortlist
-;;                         :id (id v)
-;;                         :name (funcall (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage) (name v))
-;;                         :price (price v)
-;;                         :photo (photo v)
-;;                         :address (let ((w (address v)))
-;;                                    (make-instance
-;;                                     'address
-;;                                     :latitude (latitude w)
-;;                                     :longitude (longitude w)
-;;                                     :postal_code (postal_code w)
-;;                                     :country (funcall
-;;                                               (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                               (gethash (country w) *h-country*))
-;;                                     :city (funcall
-;;                                            (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                            (gethash (city w) *h-city*))
-;;                                     :subway (funcall
-;;                                              (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                              (subway w))
-;;                                     :street (funcall
-;;                                              (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                              (street w))
-;;                                     :building (building w)))
-;;                         :estimate (estimate v))
-;;                        rs))
-;;              *h-resto*)
-;;     (format nil "{\"response\": ~A}" (json:encode-json-to-string (reverse rs)))))
-
-
-;; (restas:define-route resto-id ("/restaurant/:id/about")
-;;   (let ((rs)
-;;         (lang (aif (hunchentoot:get-parameter "lang") it "ru"))
-;;         (v (gethash (parse-integer id :junk-allowed t) *h-resto*)))
-;;     (setf rs (make-instance
-;;               'resto~longview
-;;               :id (id v)
-;;               :name (funcall (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage) (name v))
-;;               :descr (funcall (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage) (descr v))
-;;               :price (price v)
-;;               :photo (photo v)
-;;               :site (site v)
-;;               :phone (phone v)
-;;               :address (let ((w (address v)))
-;;                          (make-instance
-;;                           'address
-;;                           :latitude (latitude w)
-;;                           :longitude (longitude w)
-;;                           :postal_code (postal_code w)
-;;                           :country (funcall
-;;                                     (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                     (gethash (country w) *h-country*))
-;;                           :city (funcall
-;;                                  (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                  (gethash (city w) *h-city*))
-;;                           :subway (funcall
-;;                                    (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                    (subway w))
-;;                           :street (funcall
-;;                                    (intern (string-upcase (format nil "i18n-str-~A" lang)) :eshop.storage)
-;;                                    (street w))
-;;                           :building (building w)))
-;;               :estimate (estimate v)
-;;               :capacity (capacity v)
-;;               :optional (optional v)
-;;               ))
-;;     (format nil "{\"response\": ~A}" (json:encode-json-to-string rs))))
-
-
-
-;; (restas:define-route resto-id ("/restaurant/:id/menu")
-;;   (let ((rs)
-;;         (lang (aif (hunchentoot:get-parameter "lang") it "ru"))
-;;         (v (gethash (parse-integer id :junk-allowed t) *h-resto*))
-;;         (categoryes)
-;;         (products))
-;;     ;; (setf rs (make-instance
-;;     ;;           'category
-;;     (format nil "
-;; [
-;;     {
-;;         \"categories\" :
-;;         {
-;;             \"id\":\"1\",
-;;             \"name\" : \"Акции\",
-;;             \"icon\":\"/img/icon_action.png\"
-;;         },
-;;         {
-;;             \"id\":\"2\",
-;;             \"name\" : \"Специальные предложения\",
-;;             \"icon\":\"/img/icon_spec.png\"
-;;         }
-;;     },
-;;     {
-;;         \"products\" :
-;;         {
-;;             \"id\":\"1\",
-;;             \"name\" : \"Еда мужская, 1 кг.\",
-;;             \"pic\":\"/img/eda.png\"
-;;         }
-;;     }
-;; ]")))
 
