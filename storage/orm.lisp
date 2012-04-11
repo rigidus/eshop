@@ -25,7 +25,7 @@ alter user <dbuser> with password '<dbpassword>';
 (defparameter *db-pass* "resto1111")
 (defparameter *db-serv* "localhost")
 (defparameter *db-spec* (list *db-name* *db-user* *db-pass* *db-serv*))
-;; (connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
+(connect-toplevel *db-name* *db-user* *db-pass* *db-serv*)
 ;; (disconnect-toplevel)
 
 ;; produce (and re-init storage table if need) linktable object
@@ -144,14 +144,14 @@ alter user <dbuser> with password '<dbpassword>';
 
 
 ;; entity test
-(print (macroexpand-1 '(def~daoclass-entity product ()
-                        ((id                :col-type integer         :initform (incf-product-id))
-                         (category-id       :col-type integer         :initform 0)
-                         (options                                     :initform ""))
-                        (:keys id)
-                        (:incf id)
-                        (:re-init t)
-                        (:re-link t))))
+;; (print (macroexpand-1 '(def~daoclass-entity product ()
+;;                         ((id                :col-type integer         :initform (incf-product-id))
+;;                          (category-id       :col-type integer         :initform 0)
+;;                          (options                                     :initform ""))
+;;                         (:keys id)
+;;                         (:incf id)
+;;                         (:re-init t)
+;;                         (:re-link t))))
 
 
 ;;  LANG
@@ -190,20 +190,31 @@ alter user <dbuser> with password '<dbpassword>';
             :lang-id (get-lang-id lang)
             :val val))
 
-(defmethod load-values ((option-obj option))
-  (loop :for item :in (query-dao 'optval (:select '* :from 'optval :where (:= 'option-id (id option-obj))))
+(defmethod load-values ((option-obj option) &key lang)
+  (loop :for item :in (aif lang
+                           (query-dao 'optval (:select '* :from 'optval :where (:and (:= 'lang-id (get-lang-id lang)) (:= 'option-id (id option-obj)))))
+                           (query-dao 'optval (:select '* :from 'optval :where (:= 'option-id (id option-obj)))))
      :collect (initialize-instance item)))
 
-;; write to lang & lang_2_option
-(defparameter *ru* (make-dao 'lang :code "ru"))
-(make-option *ru* "ru" "Русский")
-(defparameter *en* (make-dao 'lang :code "en"))
-(make-option *en* "en" "English")
-(make-option *ru* "en" "Russian")
-(make-option *en* "ru" "Английский")
 
-(encode-json-to-string (load-options *en* :lang "en"))
-(load-options *ru*)
+;; write to lang & lang_2_option
+(progn
+  (defparameter *ru* (make-dao 'lang :code "ru"))
+  (make-option *ru* "ru" "Русский")
+  (defparameter *en* (make-dao 'lang :code "en"))
+  (make-option *en* "en" "English")
+  (make-option *ru* "en" "Russian")
+  (make-option *en* "ru" "Английский")
+  (defparameter *it* (make-dao 'lang :code "it"))
+  (make-option *it* "it" "Italiano")
+  (make-option *it* "en" "Italian")
+  (make-option *it* "ru" "Итальянский")
+  (make-option *ru* "it" "Russo")
+  (make-option *en* "it" "Inglese"))
+
+
+;; (encode-json-to-string (load-options *en* :lang "en"))
+;; (load-options *ru*)
 
 
 ;; COUNTRY
@@ -216,17 +227,37 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
+(progn
+  (defparameter *rus* (make-dao 'country :code "rus"))
+  (let ((opt (make-option *rus* 0 "name")))
+    (make-value opt "ru" "Россия")
+    (make-value opt "en" "Russia")
+    (make-value opt "it" "Rùssia")))
 
-(defparameter *rus* (make-dao 'country :code "rus"))
-(let ((opt (make-option *rus* 0 "name")))
-  (make-value opt "ru" "Россия")
-  (make-value opt "en" "Russia"))
+(defmacro mv (lang val)
+  `(make-value opt ,lang ,val))
 
-(defparameter *usa* (make-dao 'country :code "usa"))
-(let ((opt (make-option *usa* 0 "name")))
-  (make-value opt "ru" "США")
-  (make-value opt "en" "USA"))
+(progn
+  (defparameter *usa* (make-dao 'country :code "usa"))
+  (let ((opt (make-option *usa* 0 "name")))
+    (mv "ru" "США")
+    (mv "en" "USA")
+    (mv "it" "Stati Uniti d'America")))
 
+(defmacro mo (dao lang name parent-id &body body)
+  `(let* ((opt (make-option ,dao ,lang ,name :parent-id ,parent-id))
+          (po  (id opt)))
+     ,@(loop :for item :in body :collect item)
+     opt))
+
+(progn
+  (defparameter *ita* (make-dao 'country :code "ita"))
+  (mo *ita* 0 "name" 0
+    (mv "ru" "Италия")
+    (mv "en" "Italy")
+    (mv "it" "Itàlia")))
+
+;; (val (car (load-values (car (load-options (car (select-dao 'country)) :name "name" :lang 0)) :lang "ru")))
 
 (defun get-all-opt-val (dao-obj &key (optname-func #'identity) (optvalue-func #'identity))
   (loop :for item :in (load-options dao-obj) :collect
@@ -257,26 +288,32 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-(defparameter *spb* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "spb"))
-(let ((opt (make-option *spb* 0 "name")))
-  (make-value opt "ru" "Санкт-Петербург")
-  (make-value opt "en" "St.Peterburg"))
+(progn
+  (defparameter *spb* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "spb"))
+  (mo *spb* 0 "name" 0
+    (mv "ru" "Санкт-Петербург")
+    (mv "en" "St.Peterburg")
+    (mv "it" "San Pietroburgo"))
+  (defparameter *mos* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "mos"))
+  (mo *mos* 0 "name" 0
+    (mv "ru" "Москва")
+    (mv "en" "Moscow")
+    (mv "it" "Mosca"))
+  (defparameter *nyk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "nyk"))
+  (mo *nyk* 0 "name" 0
+    (mv "ru" "Нью-Йорк")
+    (mv "en" "New York")
+    (mv "it" "New York"))
+  (defparameter *rom* (make-dao 'city :country-id (id *ita*) :country-code (code *ita*) :code "rom"))
+  (mo *rom* 0 "name" 0
+    (mv "ru" "Рим")
+    (mv "en" "Rome")
+    (mv "it" "Róma")))
 
-(defparameter *mos* (make-dao 'city :country-id (id *rus*) :country-code (code *rus*) :code "mos"))
-(let ((opt (make-option *mos* 0 "name")))
-  (make-value opt "ru" "Москва")
-  (make-value opt "en" "Moscow"))
-
-(defparameter *nyk* (make-dao 'city :country-id (id *usa*) :country-code (code *usa*) :code "nyk"))
-(let ((opt (make-option *nyk* 0 "name")))
-  (make-value opt "ru" "Нью-Йорк")
-  (make-value opt "en" "New York"))
-
-;; (get-all-entityes-opt-val (select-dao 'city)
-;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;; (print (get-all-entityes-opt-val (select-dao 'city)
+;;                           :entity-func #'(lambda (city) (list (id city) (country-code city) (code city)))
 ;;                           :optname-func #'(lambda (option) (name option))
-;;                           :optvalue-func #'(lambda (optval) (val optval)))
-
+;;                           :optvalue-func #'(lambda (optval) (val optval))))
 
 
 ;; SUBWAY
@@ -290,21 +327,179 @@ alter user <dbuser> with password '<dbpassword>';
   (:re-init t)
   (:re-link t))
 
-(defparameter *avtovo* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avtovo"))
-(let ((opt (make-option *avtovo* 0 "name")))
-  (make-value opt "ru" "Автово")
-  (make-value opt "en" "Avtovo"))
-
-(defparameter *narvskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narvskaya"))
-(let ((opt (make-option *narvskaya* 0 "name")))
-  (make-value opt "ru" "Нарвская")
-  (make-value opt "en" "Narvskaya"))
+(progn
+  (defparameter *avtovo* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "avtovo"))
+  (mo *avtovo* 0 "name" 0
+    (mv "ru" "Автово")
+    (mv "en" "Avtovo"))
+  (defparameter *narvskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "narvskaya"))
+  (mo *narvskaya* 0 "name" 0
+    (mv "ru" "Нарвская")
+    (mv "en" "Narvskaya"))
+  (defparameter *kupchino* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "kupchino"))
+  (mo *kupchino* 0 "name" 0
+    (mv "ru" "Купчино")
+    (mv "en" "Kupchino")
+    (mv "it" "Kupchino"))
+  (defparameter *zvezdnaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "zvezdnaya"))
+  (mo *zvezdnaya* 0 "name" 0
+    (mv "ru" "Звёздная")
+    (mv "en" "Zvezdnaya")
+    (mv "it" "Zvezdnaya"))
+  (defparameter *moskovskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "moskovskaya"))
+  (mo *moskovskaya* 0 "name" 0
+    (mv "ru" "Московская")
+    (mv "en" "Moskovskaya")
+    (mv "it" "Moskovskaya"))
+  (defparameter *moskovskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "moskovskaya"))
+  (mo *moskovskaya* 0 "name" 0
+    (mv "ru" "Московская")
+    (mv "en" "Moskovskaya")
+    (mv "it" "Moskovskaya"))
+  (defparameter *park-pobedi* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "park-pobedi"))
+  (mo *park-pobedi* 0 "name" 0
+    (mv "ru" "Парк Победы")
+    (mv "en" "Park Pobedi")
+    (mv "it" "Park Pobedi"))
+  (defparameter *electrosila* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "electrosila"))
+  (mo *electrosila* 0 "name" 0
+    (mv "ru" "Электросила")
+    (mv "en" "Electrosila")
+    (mv "it" "Electrosila"))
+  (defparameter *moskovskie-vorota* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "moskovskie-vorota"))
+  (mo *moskovskie-vorota* 0 "name" 0
+    (mv "ru" "Московские ворота")
+    (mv "en" "Moskovskie vorota")
+    (mv "it" "Moskovskie vorota"))
+  (defparameter *frunzenskaya* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "frunzenskaya"))
+  (mo *frunzenskaya* 0 "name" 0
+    (mv "ru" "Фрунзенская")
+    (mv "en" "Frunzenskaya")
+    (mv "it" "Frunzenskaya"))
+  (defparameter *tehnologicheskiy-institut* (make-dao 'subway :city-id (id *spb*) :city-code (code *spb*) :code "tehnologicheskiy-institut"))
+  (mo *tehnologicheskiy-institut* 0 "name" 0
+    (mv "ru" "Технологический институт")
+    (mv "en" "Tehnologicheskiy institut")
+    (mv "it" "Tehnologicheskiy institut")))
 
 ;; (get-all-entityes-opt-val (select-dao 'subway)
-;;                           :entity-func #'(lambda (country) (list (id country) (code country)))
+;;                           :entity-func #'(lambda (subway) (list (id subway) (code subway)))
 ;;                           :optname-func #'(lambda (option) (name option))
 ;;                           :optvalue-func #'(lambda (optval) (val optval)))
 
+;; PRE-CREATE OPTION
+
+;; special macro for 0 dao-obj (unlinked option)
+(defmethod make-option ((zero-obj (eql 0)) lang name &key (optype "") (parent-id 0))
+  (let* ((lang-id    (get-lang-id lang)))
+    (make-dao 'option :lang-id lang-id :name name :optype optype :parent-id parent-id)))
+
+
+(defparameter *restaurant-options*
+  (mo 0 0 "restaurant-options" 0
+    (mv "ru" "Опции ресторана")
+    (mv "en" "Restaurant`s options")
+    (mv "it" "Elenco dei ristoranti")
+    (defparameter *cuisine*
+      (mo 0 0 "name" po
+        (mv "ru" "Кухня")
+        (mv "en" "Cuisine")
+        (mv "it" "Cucina")
+        (mo 0 0 "name" po
+          (mv "ru" "Европейская")
+          (mv "en" "European")
+          (mv "it" "Europeo"))
+        (mo 0 0 "name" po
+          (mv "ru" "Русская")
+          (mv "en" "Russian")
+          (mv "it" "Russa"))
+        (mo 0 0 "name" po
+          (mv "ru" "Японская")
+          (mv "en" "Japanese")
+          (mv "it" "Giapponese"))
+        (mo 0 0 "name" po
+          (mv "ru" "Итальянская")
+          (mv "en" "Italian")
+          (mv "it" "Italiano"))
+        (mo 0 0 "name" po
+          (mv "ru" "Американская")
+          (mv "en" "American")
+          (mv "it" "Americano"))))
+    (defparameter *service*
+      (mo 0 0 "name" po
+        (mv "ru" "Услуги")
+        (mv "en" "Service")
+        (mv "it" "Servizi")
+        (mo 0 0 "name" po
+          (mv "ru" "Завтрак")
+          (mv "en" "Breakfast")
+          (mv "it" "Colazione"))
+        (mo 0 0 "name" po
+          (mv "ru" "Ланч")
+          (mv "en" "Snack")
+          (mv "it" "Merenda"))
+        (mo 0 0 "name" po
+          (mv "ru" "Доставка")
+          (mv "en" "Delivery")
+          (mv "it" "Recapito"))))
+    (defparameter *children*
+      (mo 0 0 "name" po
+        (mv "ru" "Дети")
+        (mv "en" "Children")
+        (mv "it" "Bambini")
+        (mo 0 0 "name" po
+          (mv "ru" "Детское меню")
+          (mv "en" "Children menu")
+          (mv "it" "Menù di bambini"))
+        (mo 0 0 "name" po
+          (mv "ru" "Детская комната")
+          (mv "en" "Nursery room")
+          (mv "it" "Stanza di bambini"))
+        (mo 0 0 "name" po
+          (mv "ru" "Детские праздники")
+          (mv "en" "Children holiday")
+          (mv "it" "Festa di bambini"))
+        (mo 0 0 "name" po
+          (mv "ru" "Няня")
+          (mv "en" "Nanny")
+          (mv "it" "Bambinaia"))))
+    (defparameter *view*
+      (mo 0 0 "view" po
+        (mv "ru" "Вид")
+        (mv "en" "View")
+        (mv "it" "Vista")
+        (mo 0 0 "name" po
+          (mv "ru" "Панорама")
+          (mv "en" "Panorama")
+          (mv "it" "Panorama"))
+        (mo 0 0 "name" po
+          (mv "ru" "Магистраль")
+          (mv "en" "Highway")
+          (mv "it" "Principale"))
+        (mo 0 0 "name" po
+          (mv "ru" "Природа")
+          (mv "en" "Nature")
+          (mv "it" "Natura"))))))
+
+
+(defmethod load-child-options ((dao-option option))
+  (select-dao 'option (:= 'parent-id (id dao-option))))
+
+
+(defmethod opt-tree ((param option) &key (lang "ru"))
+  (let ((childs (load-child-options param)))
+    (if childs
+        (list (aif (car (load-values param :lang lang))
+                   (val it)
+                   "Нет названия")
+              (mapcar #'ru-vals childs))
+        (list (aif (car (load-values param :lang lang))
+                   (val it)
+                   "Нет названия")))))
+
+;; (print (opt-tree *restaurant-options*))
+
+;; <--------------------------------------
 
 ;;  SHOP
 
@@ -356,13 +551,6 @@ alter user <dbuser> with password '<dbpassword>';
    :rating-count 96
    :comment-count 89))
 
-(defmacro mv (lang val)
-  `(make-value opt ,lang ,val))
-
-(defmacro mo (dao lang name parent-id &body body)
-  `(let* ((opt (make-option ,dao ,lang ,name :parent-id ,parent-id))
-          (po (id opt)))
-     ,@(loop :for item :in body :collect item)))
 
 (let ((i *makarena*))
   (mo i 0 "name" 0

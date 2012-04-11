@@ -18,6 +18,10 @@
            "/country [lang=ru]"
            "/city [country=rus] [lang=ru]"
            "/subway [city=spb] [lang=ru]"
+           "/restaurant [lang=ru]"
+           "/restaurant/{code} [lang=ru]"
+           "/category [restaurant] [lang=ru]"
+           "/dish [restaurant] [category] [lang=ru]"
            )))
 
 
