@@ -306,3 +306,8 @@
                      :lang (aif (hunchentoot:get-parameter "lang") it "ru")))))
           (t "disp-error"))))
 
+
+(defparameter *savetest* nil)
+
+(restas:define-route savetest ("/savetest" :method :post)
+  (push (hunchentoot:post-parameters*) *savetest*))
