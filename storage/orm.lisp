@@ -723,3 +723,51 @@ alter user <dbuser> with password '<dbpassword>';
 (def~daoclass-linktable shop product t)
 (def~daoclass-linktable category product t)
 
+
+
+(defparameter *sandwich*
+  (make-dao
+   'product
+   :code "sandwich"
+   :price 20))
+
+(let ((i *sandwich*))
+  (mo i 0 "name" 0
+    (mv "ru" "Сэндвич")
+    (mv "en" "Sandwich")))
+
+
+(query (:insert-into 'category_2_product :set 'category-id (id *cold-dishes*) 'product-id (id *sandwich*)))
+(query (:insert-into 'shop_2_product :set 'shop-id (id *makarena*) 'product-id (id *sandwich*)))
+
+
+(defparameter *gamburger*
+  (make-dao
+   'product
+   :code "gamburger"
+   :price 30))
+
+(let ((i *gamburger*))
+  (mo i 0 "name" 0
+    (mv "ru" "Гамбургер")
+    (mv "en" "Gamburger")))
+
+(query (:insert-into 'category_2_product :set 'category-id (id *hot-dishes*) 'product-id (id *gamburger*)))
+(query (:insert-into 'shop_2_product :set 'shop-id (id *makarena*) 'product-id (id *gamburger*)))
+
+
+
+(defparameter *sosiska*
+  (make-dao
+   'product
+   :code "sosiska"
+   :price 30))
+
+(let ((i *sosiska*))
+  (mo i 0 "name" 0
+    (mv "ru" "Сосиска")
+    (mv "en" "Sosiska")))
+
+(query (:insert-into 'category_2_product :set 'category-id (id *hot-dishes*) 'product-id (id *sosiska*)))
+(query (:insert-into 'shop_2_product :set 'shop-id (id *makarena*) 'product-id (id *sosiska*)))
+

@@ -231,31 +231,34 @@
 (defun get-product (item &key (lang "ru"))
   (list (cons :id (id item))
         (cons :code (code item))
-        (cons :image (image item))
-        (cons :parent (aif (get-dao 'category (parent-id item))
-                           (code it)
-                           nil))
+        (cons :photo-small (photo-small item))
+        (cons :photo-big (photo-small item))
         (cons :name (car (mapcar #'val (remove-if-not #'(lambda (x)
                                                           (equal (lang-id x) (get-lang-id lang)))
                                                       (load-values (car (load-options item :name "name")))))))
-        (cons :subcategoryes (mapcar #'code (select-dao 'category (:= 'parent-id (id item)))))))
+        (cons :categoryes (loop :for category :in (mapcar #'(lambda (x)
+                                                          (get-dao 'category (car x)))
+                                                      (query (:select 'category_id :from 'category_2_product :where (:= 'product_id (id item)))))
+                             :collect (code category)))))
 
 
-;; todo - оттестировать
+
 (restas:define-route dish ("/dish")
   (let ((err) (rs))
     (aif (hunchentoot:get-parameter "restaurant")
          ;; isset parameter restaurant
          (aif (select-dao 'shop (:= 'code it))
-              (setf rs (append rs (query (:select 'shop_id :from 'shop_2_product :where (:= 'shop_id (id (car it)))))))
+              (setf rs (append rs (mapcar #'car (query (:select 'product_id :from 'shop_2_product :where (:= 'shop_id (id (car it))))))))
               (push "restaurant not found" err)))
     (aif (hunchentoot:get-parameter "category")
-         ;; isset parameter restaurant
+         ;; isset parameter category
          (aif (select-dao 'category (:= 'code it))
               (setf rs (append rs (query (:select 'product_id :from 'category_2_product :where (:= 'category_id (id (car it)))))))
               (push "category not found" err)))
     (when err
       (return-from dish (format nil "{\"errors\": ~A}" (json:encode-json-to-string err))))
+    (when (null rs)
+      (return-from dish 400)) ;; param error
     (format nil "{\"response\": ~A}"
             (json:encode-json-to-string
              (loop :for item :in (query-dao 'product (format nil "SELECT * FROM product WHERE id IN (~{~A~^, ~})" (remove-duplicates rs)))
@@ -283,7 +286,7 @@
             haversinus distance)))
 
 
-(get-restaurants :city "spb")
+;; (get-restaurants :city "spb")
 
 
 (restas:define-route api-lang ("/api.php")
@@ -307,7 +310,24 @@
           (t "disp-error"))))
 
 
-(defparameter *savetest* nil)
+;; (defparameter *savetest* nil)
 
-(restas:define-route savetest ("/savetest" :method :post)
-  (push (hunchentoot:post-parameters*) *savetest*))
+
+;; (restas:define-route savetest ("/savetest" :method :post)
+;;     (push (hunchentoot:post-parameters*) *savetest*)
+;;       "Данные успешно сохранены")
+
+
+
+
+;; (defparameter *savetest* '(("id" . "1")
+;;                            ("name" . "Паста с креветками")
+;;                            ("description" . "Паста с креветками, сливочно-томатным соусом и вермутом")
+;;                            ("price" . "450")
+;;                            ("category_id" . "3")
+;;                            ("delivery" . "1")))
+
+;; (assoc "id" *savetest* :test #'equal)
+
+
+
