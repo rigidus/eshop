@@ -19,8 +19,10 @@
   :serial       t
   :components   ((:file "defmodule")
                  (:file "lib")
+                 (:file "db")
                  (:file "classes")
                  (:file "render")
-                 ;; (:file "routes")
+                 (:file "routes")
                  (:file "init")
+                 (:file "start")
                  ))

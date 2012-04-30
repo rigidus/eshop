@@ -16,7 +16,7 @@
 (defmethod restas:render-object ((designer storage-render) (data list))
   "default render stub")
 
-(defmethod restas:render-object ((designer storage-render) (obj resto))
-  (format nil "{\"response\": ~A}" (encode-json-to-string obj)))
+;; (defmethod restas:render-object ((designer storage-render) (obj resto))
+;;   (format nil "{\"response\": ~A}" (encode-json-to-string obj)))
 
 
